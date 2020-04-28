@@ -45,6 +45,7 @@ void MotorControl::Reset()
 	SetServo(MOTOR_MOVE_R, 0);
 	SetServo(MOTOR_PITCH_CANNON, 0);
 	SetServo(MOTOR_TURN_TURRET, 0);
+	RelayCannon(false);
 
 	GetServo(MOTOR_MOVE_L)->write(ESC_ARM);
 	GetServo(MOTOR_MOVE_R)->write(ESC_ARM);
