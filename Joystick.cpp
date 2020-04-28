@@ -41,20 +41,15 @@ void Joystick::Update()
 		return;
 	}
 
-
 	temp_button_state[(size_t)Button::DPAD_UP] = PS4.data.button.up;
 	temp_button_state[(size_t)Button::DPAD_DOWN] = PS4.data.button.down;
 	temp_button_state[(size_t)Button::DPAD_LEFT] = PS4.data.button.left;
 	temp_button_state[(size_t)Button::DPAD_RIGHT] = PS4.data.button.right;
 
-	// if ( PS4.data.button.upright )
-	//     Serial.println("Up Right");
-	// if ( PS4.data.button.upleft )
-	//     Serial.println("Up Left");
-	// if ( PS4.data.button.downleft )
-	//     Serial.println("Down Left");
-	// if ( PS4.data.button.downright )
-	//     Serial.println("Down Right");
+	temp_button_state[(size_t)Button::DPAD_UP_LEFT] = PS4.data.button.upleft;
+	temp_button_state[(size_t)Button::DPAD_UP_RIGHT] = PS4.data.button.upright;
+	temp_button_state[(size_t)Button::DPAD_DOWN_LEFT] = PS4.data.button.downleft;
+	temp_button_state[(size_t)Button::DPAD_DOWN_RIGHT] = PS4.data.button.downright;
 
 	temp_button_state[(size_t)Button::TRIANGLE] = PS4.data.button.triangle;
 	temp_button_state[(size_t)Button::CIRCLE] = PS4.data.button.circle;
@@ -72,8 +67,7 @@ void Joystick::Update()
 
 	temp_button_state[(size_t)Button::HOME] = PS4.data.button.ps;
 
-	// if ( PS4.data.button.touchpad )
-	//     Serial.println("Touch Pad Button");
+	temp_button_state[(size_t)Button::TOUCHPAD] = PS4.data.button.touchpad;
 		
 	temp_axis[(size_t)Axis::L2] = PS4.data.analog.button.l2;
 	temp_axis[(size_t)Axis::R2] = PS4.data.analog.button.r2;

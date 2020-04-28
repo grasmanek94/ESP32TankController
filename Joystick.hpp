@@ -30,7 +30,12 @@ public:
 		DPAD_LEFT = 12,
 		DPAD_RIGHT = 13,
 		DPAD_DOWN = 14,
-		MAX = 15
+		TOUCHPAD = 15,
+		DPAD_UP_RIGHT = 16,
+		DPAD_UP_LEFT = 17,
+		DPAD_DOWN_RIGHT = 18,
+		DPAD_DOWN_LEFT = 19,
+		MAX = 20
 	};
 
 	enum class Axis : size_t
