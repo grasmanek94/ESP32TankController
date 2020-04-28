@@ -23,8 +23,6 @@ public:
 	void Reset();
 
 	static int remap(int value, int start1, int stop1, int start2, int stop2);
-private:		
-	void SetServo(int channel, int speed);
 
 private:
 
@@ -40,30 +38,28 @@ private:
 		 {}
 	};
 
+	struct function_info
+	{
+		int pin;
+		Calibration calibration;
+		ESP32Servo servo;
+	};
+
+	void SetServo(function_info& info, int speed);
+	void AttachServo(function_info& info);
+
 	const static int USMIN = 0;
 	const static int USMAX = 1000000;
 
-	const static int RELAY_CANNON = 11;
-	const static int MOTOR_TURN_TURRET = 12;
-	const static int MOTOR_PITCH_CANNON = 13;
-	const static int MOTOR_MOVE_L = 14;
-	const static int MOTOR_MOVE_R = 15;
-
-	const static int CHANNEL_MIN = 11;
-	const static int CHANNEL_MAX = 15;
-	const static int CHANNEL_COUNT = CHANNEL_MAX - CHANNEL_MIN + 1;
-
 	const static int ESC_ARM = 500;
 
-	std::array<Calibration, CHANNEL_COUNT> calibration;
+	function_info relay_cannon;
+	function_info motor_turn_turret;
+	function_info motor_pitch_cannon;
+	function_info motor_move_l;
+	function_info motor_move_r;
 
-	std::array<ESP32Servo, CHANNEL_COUNT>  servo;
 	bool relay_enabled;
-
-	static int GetChannelIndex(int channel);
-
-	ESP32Servo* GetServo(int channel);
-
 };
 
 }

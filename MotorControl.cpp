@@ -10,7 +10,7 @@ namespace TankController
 
 /*
 
-Calibration
+Calibration @ 50Hz / 12-bits [uint16_t]
 ServoNum	LMIN	LMAX	RMIN	RMAX	MID
 15			282		292		312		322		302
 14			281		291		311		321		301
@@ -19,36 +19,35 @@ ServoNum	LMIN	LMAX	RMIN	RMAX	MID
 
 */
 
-MotorControl::MotorControl()
-	: 
-	calibration{
-		Calibration{1000000,1000000,0,1000000,1000000}, // Cannon
-		Calibration{1386,1435,1480,1528,1577}, // Yaw Turret
-		Calibration{1372,1420,1470,1518,1567}, // Pitch Turret
-		Calibration{800,1450,1500,1550,2100}, // Left Engine
-		Calibration{800,1450,1500,1550,2100} // Right Engine
-	},
-	servo{}, relay_enabled{ false }
+MotorControl::MotorControl() : 
+	relay_cannon{25, Calibration{1000000,1000000,0,1000000,1000000}, {}}, // Cannon
+	motor_turn_turret{33, Calibration{1386,1435,1480,1528,1577}, {}}, // Yaw Turret
+	motor_pitch_cannon{32, Calibration{1372,1420,1470,1518,1567}, {}}, // Pitch Turret
+	motor_move_l{34, Calibration{800,1450,1500,1550,2100}, {}}, // Left Engine
+	motor_move_r{35, Calibration{800,1450,1500,1550,2100}, {}}, // Right Engine
+    relay_enabled{ false }
 {
-	GetServo(RELAY_CANNON)->attach(RELAY_CANNON, -1, USMIN, USMAX, USMIN, USMAX);
-	GetServo(MOTOR_TURN_TURRET)->attach(MOTOR_TURN_TURRET, -1, USMIN, USMAX, USMIN, USMAX);
-	GetServo(MOTOR_PITCH_CANNON)->attach(MOTOR_PITCH_CANNON, -1, USMIN, USMAX, USMIN, USMAX);
-	GetServo(MOTOR_MOVE_L)->attach(MOTOR_MOVE_L, -1, USMIN, USMAX, USMIN, USMAX);
-	GetServo(MOTOR_MOVE_R)->attach(MOTOR_MOVE_R, -1, USMIN, USMAX, USMIN, USMAX);
+	AttachServo(relay_cannon);
+	AttachServo(motor_turn_turret);
+	AttachServo(motor_pitch_cannon);
+	AttachServo(motor_move_l);
+	AttachServo(motor_move_r);
 
 	Reset();
 }
 
 void MotorControl::Reset()
 {
-	SetServo(MOTOR_MOVE_L, 0);
-	SetServo(MOTOR_MOVE_R, 0);
-	SetServo(MOTOR_PITCH_CANNON, 0);
-	SetServo(MOTOR_TURN_TURRET, 0);
+	SetServo(relay_cannon, 0);
+	SetServo(motor_turn_turret, 0);
+	SetServo(motor_pitch_cannon, 0);
+	SetServo(motor_move_r, 0);
+	SetServo(motor_move_l, 0);
+
 	RelayCannon(false);
 
-	GetServo(MOTOR_MOVE_L)->write(ESC_ARM);
-	GetServo(MOTOR_MOVE_R)->write(ESC_ARM);
+	motor_move_l.servo.write(ESC_ARM);
+	motor_move_r.servo.write(ESC_ARM);
 }
 
 MotorControl::~MotorControl()
@@ -58,23 +57,23 @@ MotorControl::~MotorControl()
 
 void MotorControl::MoveTracks(int speed_l, int speed_r)
 {
-	SetServo(MOTOR_MOVE_L, -speed_l);
-	SetServo(MOTOR_MOVE_R, speed_r);
+	SetServo(motor_move_l, -speed_l);
+	SetServo(motor_move_r, speed_r);
 }
 
 void MotorControl::MovePitch(int pitch_speed)
 {
-	SetServo(MOTOR_PITCH_CANNON, pitch_speed);
+	SetServo(motor_pitch_cannon, pitch_speed);
 }
 
 void MotorControl::MoveTurret(int turn_speed)
 {
-	SetServo(MOTOR_TURN_TURRET, turn_speed);
+	SetServo(motor_turn_turret, turn_speed);
 }
 
 void MotorControl::RelayCannon(bool enabled)
 {
-	SetServo(RELAY_CANNON, (enabled ? 1000 : 0));
+	SetServo(relay_cannon, (enabled ? 1000 : 0));
 	relay_enabled = enabled;
 }
 
@@ -85,7 +84,7 @@ bool MotorControl::RelayEnabled()
 		return true;
 	}
 
-	return GetServo(RELAY_CANNON)->read() != 0;
+	return relay_cannon.servo.read() != 0;
 }
 
 int MotorControl::remap(int value, int start1, int stop1, int start2, int stop2)
@@ -99,37 +98,25 @@ int MotorControl::remap(int value, int start1, int stop1, int start2, int stop2)
 	return (int)(fstart2 + (fstop2 - fstart2) * ((fvalue - fstart1) / (fstop1 - fstart1)));
 }
 
-void MotorControl::SetServo(int channel, int speed)
+void MotorControl::SetServo(function_info& info, int speed)
 {
-	if (channel > CHANNEL_MAX || channel < CHANNEL_MIN)
-	{
-		return;
-	}
-
-	const Calibration& local_calibration = calibration[GetChannelIndex(channel)];
-
-	int value = local_calibration.MOVZERO;
+	int value = info.calibration.MOVZERO;
 
 	if (speed < 0)
 	{
-		value = remap(speed, -1000, 0, local_calibration.MOVLMIN, local_calibration.MOVLMAX);
+		value = remap(speed, -1000, 0, info.calibration.MOVLMIN, info.calibration.MOVLMAX);
 	}
 	else if (speed > 0)
 	{
-		value = remap(speed, 0, 1000, local_calibration.MOVRMIN, local_calibration.MOVRMAX);
+		value = remap(speed, 0, 1000, info.calibration.MOVRMIN, info.calibration.MOVRMAX);
 	}
 
-	GetServo(channel)->write(value);
+	info.servo.write(value);
 }
 
-int MotorControl::GetChannelIndex(int channel)
+void MotorControl::AttachServo(function_info& info)
 {
-	return channel - CHANNEL_MIN;
-}
-
-ESP32Servo* MotorControl::GetServo(int channel)
-{
-	return &servo[GetChannelIndex(channel)];
+	info.servo.attach(info.pin, -1, USMIN, USMAX, USMIN, USMAX);
 }
 
 }
