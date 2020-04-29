@@ -15,6 +15,7 @@ public:
 	bool Cell1Okay();
 	bool Cell2Okay();
 	bool ControllerOkay();
+	bool AllOkay();
 private:
 	int pin_1;
 	int pin_2;

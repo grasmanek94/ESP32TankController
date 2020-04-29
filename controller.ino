@@ -110,14 +110,14 @@ void AdjustSpeed(int amount)
     }
 }
 
-void ControlLoop(milliseconds now)
+void PerformMotorControls(unsigned long time_now)
 {
     const float SPEED_COEFFICIENT = 1.0f;
     const float STEER_COEFFICIENT = 1.0f;
 
-    if (next_control_update < now)
+    if (next_control_update < time_now)
     {
-        next_control_update = now + control_update_time;
+        next_control_update = time_now + control_update_time;
 
         joystick.Update();
 
@@ -139,7 +139,7 @@ void ControlLoop(milliseconds now)
 
         bool enabled = control.RelayEnabled();
 
-        if (enabled && relay_disable_time < now)
+        if (enabled && relay_disable_time < time_now)
         {
             control.RelayCannon(false);
             if (Serial)
@@ -151,11 +151,11 @@ void ControlLoop(milliseconds now)
                  ((joystick.GetPressed(Joystick::Button::L1) && joystick.GetState(Joystick::Button::R1)) ||
                   (joystick.GetPressed(Joystick::Button::R1) && joystick.GetState(Joystick::Button::L1))))
         {
-            relay_disable_time = now + relay_disable_timeout;
+            relay_disable_time = time_now + relay_disable_timeout;
             control.RelayCannon(true);
             if (Serial)
             {
-                Serial.printf("RelayCannon(true), now: %d, disable: %d\r\n", now, relay_disable_time);
+                Serial.printf("RelayCannon(true), now: %d, disable: %d\r\n", time_now, relay_disable_time);
             }
         }
 
@@ -270,7 +270,7 @@ void loop()
     
     if(controller_connected && batteries_charged)
     {
-        ControlLoop(now);
+        PerformMotorControls(now);
     }
     else
     {
