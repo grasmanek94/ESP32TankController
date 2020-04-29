@@ -3,6 +3,7 @@
 #include "PS4Controller.h"
 #include "Joystick.hpp"
 #include "MotorControl.hpp"
+#include "LaserDistanceMeter.hpp"
 
 using namespace TankController;
 
@@ -48,7 +49,7 @@ void printDeviceAddress()
 bool controller_connected = false;
 MotorControl control;
 Joystick joystick;
-// LaserDistanceMeter distance_meter;
+LaserDistanceMeter distance_meter(&Serial1);
 
 using milliseconds = unsigned long;
 
@@ -121,19 +122,19 @@ void ControlLoop()
 
         if (joystick.GetPressed(Joystick::Button::CIRCLE))
         {
-            // distance_meter.SetLaser(!distance_meter.GetLaser());
+            distance_meter.SetLaser(!distance_meter.GetLaser());
         }
         else if (joystick.GetPressed(Joystick::Button::TRIANGLE))
         {
-            // distance_meter.StartMeasurement(LaserDistanceMeter::Accuracy::ACC_LOW);
+            distance_meter.StartMeasurement(LaserDistanceMeter::Accuracy::ACC_LOW);
         }
         else if (joystick.GetPressed(Joystick::Button::SQUARE))
         {
-            // distance_meter.StartMeasurement(LaserDistanceMeter::Accuracy::ACC_MEDIUM);
+            distance_meter.StartMeasurement(LaserDistanceMeter::Accuracy::ACC_MEDIUM);
         }
         else if (joystick.GetPressed(Joystick::Button::SQUARE))
         {
-            // distance_meter.StartMeasurement(LaserDistanceMeter::Accuracy::ACC_HIGH);
+            distance_meter.StartMeasurement(LaserDistanceMeter::Accuracy::ACC_HIGH);
         } 
         else if (joystick.GetPressed(Joystick::Button::DPAD_DOWN))
         {
@@ -151,11 +152,11 @@ void ControlLoop()
         {
             max_speed = CLAMP(max_speed + 10, 10, 1000);
         }
-        // else if (distance_meter.HasNewDistanceResult())
+        else if (distance_meter.HasNewDistanceResult())
         {
             // std::cout << "Distance: " << distance_meter.GetDistance() << std::endl;
         }
-        // else if (distance_meter.HasError())
+        else if (distance_meter.HasError())
         {
             // std::cout << "Distance: Measurement Error" << std::endl;
         }
