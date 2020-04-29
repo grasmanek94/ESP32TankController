@@ -4,6 +4,7 @@
 #include "Joystick.hpp"
 #include "MotorControl.hpp"
 #include "LaserDistanceMeter.hpp"
+#include "BatteryMeter.hpp"
 
 using namespace TankController;
 
@@ -51,25 +52,30 @@ void printDeviceAddress()
 
 const int BATTERY_STATUS_LED = 2;
 
-bool controller_connected;
-bool batteries_charged;
 MotorControl control;
 Joystick joystick;
 LaserDistanceMeter distance_meter;
+BatteryMeter battery_meter;
+
+bool controller_connected = false;
 
 using milliseconds = unsigned long;
 
-milliseconds last_control_update;
-milliseconds relay_disable_time;
+milliseconds next_control_update = 0;
+const milliseconds control_update_time = 10;
+
+milliseconds relay_disable_time = 0;
+const milliseconds relay_disable_timeout = 75;
+
+milliseconds next_battery_update = 0;
+const int max_battery_charge_failures = 4;
+const milliseconds battery_update_time = 250;
+int battery_charge_failures = max_battery_charge_failures;
 
 int max_speed;
 
 void Reset()
 {
-    batteries_charged = false;
-    controller_connected = false;
-    last_control_update = millis();
-    relay_disable_time = millis();
     max_speed = 1000;
 
     control.Reset();
@@ -104,16 +110,14 @@ void AdjustSpeed(int amount)
     }
 }
 
-void ControlLoop()
+void ControlLoop(milliseconds now)
 {
     const float SPEED_COEFFICIENT = 1.0f;
     const float STEER_COEFFICIENT = 1.0f;
 
-    milliseconds now = millis();
-
-    if (now - last_control_update >= milliseconds(10))
+    if (next_control_update < now)
     {
-        last_control_update = now;
+        next_control_update = now + control_update_time;
 
         joystick.Update();
 
@@ -147,7 +151,7 @@ void ControlLoop()
                  ((joystick.GetPressed(Joystick::Button::L1) && joystick.GetState(Joystick::Button::R1)) ||
                   (joystick.GetPressed(Joystick::Button::R1) && joystick.GetState(Joystick::Button::L1))))
         {
-            relay_disable_time = now + milliseconds(75);
+            relay_disable_time = now + relay_disable_timeout;
             control.RelayCannon(true);
             if (Serial)
             {
@@ -224,49 +228,52 @@ void ControlLoop()
 
 void loop()
 {
-    bool batteries_charged_now = false;
-    if (batteries_charged && !batteries_charged_now)
-    {
-        Reset();
-    }
+    milliseconds now = millis();
 
-    if (!batteries_charged)
-    {
-        delay(250);
-        digitalWrite(BATTERY_STATUS_LED, HIGH);
-        delay(250);
-        digitalWrite(BATTERY_STATUS_LED, LOW);
-        return;
-    }
+    bool batteries_charged = battery_charge_failures < max_battery_charge_failures;
 
-    if (PS4.isConnected())
+    if(next_battery_update < now)
     {
-        if (!controller_connected)
+        next_battery_update = now + battery_update_time;
+
+        if(!battery_meter.AllOkay())
         {
-            // init routines here
-            controller_connected = true;
-            PS4.setLed(0, 200, 0);
-            // PS4.setFlashRate(100, 200); // 100ms on, 200ms off [0,2550], {0,0} => ON
-            // PS4.setRumble(100, 200); // weak, strong rumble [0,255]
-            PS4.sendToController();
+            ++battery_charge_failures;
+            digitalWrite(BATTERY_STATUS_LED, battery_charge_failures % 2);
+            if(batteries_charged && !(battery_charge_failures < max_battery_charge_failures))
+            {
+                batteries_charged = false;
+                Reset();
+            }
+        } else {
+            battery_charge_failures = 0;
+            batteries_charged = true;
+            digitalWrite(BATTERY_STATUS_LED, LOW);
         }
+    }
 
-        ControlLoop();
-
-        // if (PS4.data.status.charging)
-        //   Serial.println("The controller is charging");
-        // Serial.print("Battery = ");
-        // Serial.print(PS4.data.status.battery, DEC);
-        // Serial.println(" / 16");
+    if (!PS4.isConnected() && controller_connected)
+    {
+        // exit routines here
+        Reset();
+        controller_connected = false;
+    }
+    else if (PS4.isConnected() && !controller_connected)
+    {
+        // init routines here
+        controller_connected = true;
+        PS4.setLed(0, 200, 0);
+        // PS4.setFlashRate(100, 200); // 100ms on, 200ms off [0,2550], {0,0} => ON
+        // PS4.setRumble(100, 200); // weak, strong rumble [0,255]
+        PS4.sendToController();
+    }
+    
+    if(controller_connected && batteries_charged)
+    {
+        ControlLoop(now);
     }
     else
     {
-        if (controller_connected)
-        {
-            Reset();
-            controller_connected = false;
-        }
-
         printDeviceAddress();
         delay(100);
     }
