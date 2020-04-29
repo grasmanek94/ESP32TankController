@@ -55,7 +55,7 @@ bool controller_connected;
 bool batteries_charged;
 MotorControl control;
 Joystick joystick;
-LaserDistanceMeter distance_meter(&Serial1);
+LaserDistanceMeter distance_meter;
 
 using milliseconds = unsigned long;
 

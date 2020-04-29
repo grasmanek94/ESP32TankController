@@ -18,7 +18,7 @@ public:
 		ACC_HIGH
 	};
 
-	LaserDistanceMeter(HardwareSerial* port);
+	LaserDistanceMeter(int uartnr = 2);
 	virtual ~LaserDistanceMeter();
 
 	void SetLaser(bool on);
@@ -34,7 +34,7 @@ public:
 
 	void Update();
     void Reset();
-	
+
 private:
 	float distance;
 	bool error;
@@ -45,7 +45,7 @@ private:
 	bool has_new_distance;
 	
 	milliseconds last_command_time;
-	HardwareSerial* comm;
+	HardwareSerial comm;
 	char buffer[128];
 	int size;
 

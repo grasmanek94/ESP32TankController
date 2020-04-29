@@ -5,13 +5,15 @@
 namespace TankController
 {
 
-LaserDistanceMeter::LaserDistanceMeter(HardwareSerial *port)
+LaserDistanceMeter::LaserDistanceMeter(int uartnr)
 	: distance{0.0f}, error{false}, keep_laser_on{false},
 	  measurement_running{false}, laser_ack{false},
 	  module_state{false}, has_new_distance{false},
-	  last_command_time{0}, comm{port},
+	  last_command_time{0}, comm(uartnr),
 	  buffer{}, size{0}
 {
+	comm.begin(baud);
+
 	Reset();
 }
 
@@ -27,11 +29,6 @@ void LaserDistanceMeter::Reset()
 	module_state = false;
 	has_new_distance = false;
     last_command_time = 0;
-
-	if(comm != nullptr)
-	{
-		comm->begin(baud);
-	}
 
 	SendCommand(Command::LASER_CLOSE);
 }
@@ -115,7 +112,7 @@ bool LaserDistanceMeter::IsBusy() const
 
 void LaserDistanceMeter::Update()
 {
-	if(comm == nullptr)
+	if(!comm)
 	{
 		return;
 	}
@@ -125,9 +122,9 @@ void LaserDistanceMeter::Update()
 	bool state_recv = false;
 	bool event = false;
 
-	while (IsBusy() && comm->available() > 0)
+	while (IsBusy() && comm.available() > 0)
 	{
-		int c = comm->read();
+		int c = comm.read();
 		if (c != -1)
 		{
 			if (c == '\n')
@@ -191,9 +188,9 @@ void LaserDistanceMeter::Update()
 		}
 	}
 
-	while (!IsBusy() && comm->available() > 0)
+	while (!IsBusy() && comm.available() > 0)
 	{
-		comm->read();
+		comm.read();
 	}
 
 	if (IsBusy() && millis() > 5000 && millis() - last_command_time > milliseconds(5000))
@@ -206,13 +203,13 @@ void LaserDistanceMeter::Update()
 
 bool LaserDistanceMeter::SendCommand(Command command)
 {
-	if (comm == nullptr || !comm->availableForWrite())
+	if (!comm || !comm.availableForWrite())
 	{
 		return false;
 	}
 
 	last_command_time = millis();
-	return comm->write((uint8_t *)&command, 1) == 1;
+	return comm.write((uint8_t *)&command, 1) == 1;
 }
 
 void LaserDistanceMeter::GetModuleState()
