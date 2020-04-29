@@ -49,7 +49,10 @@ void printDeviceAddress()
     Serial.println("");
 }
 
-bool controller_connected = false;
+const int BATTERY_STATUS_LED = 2;
+
+bool controller_connected;
+bool batteries_charged;
 MotorControl control;
 Joystick joystick;
 LaserDistanceMeter distance_meter(&Serial1);
@@ -61,15 +64,10 @@ milliseconds relay_disable_time;
 
 int max_speed;
 
-void setup()
+void Reset()
 {
-    Serial.begin(115200);
-    while (!init_bluetooth())
-    {
-    }
-    printDeviceAddress();
-    PS4.begin("70:20:84:6d:3d:4c");
-
+    batteries_charged = false;
+    controller_connected = false;
     last_control_update = millis();
     relay_disable_time = millis();
     max_speed = 1000;
@@ -77,6 +75,22 @@ void setup()
     control.Reset();
     joystick.Update();
     distance_meter.Reset();
+}
+
+void setup()
+{
+    Serial.begin(115200);
+
+    while (!init_bluetooth())
+    {
+    }
+
+    printDeviceAddress();
+    PS4.begin("70:20:84:6d:3d:4c");
+
+    pinMode(BATTERY_STATUS_LED, OUTPUT);
+
+    Reset();
 }
 
 #define CLAMP(x, low, high) (((x) > (high)) ? (high) : (((x) < (low)) ? (low) : (x)))
@@ -210,6 +224,21 @@ void ControlLoop()
 
 void loop()
 {
+    bool batteries_charged_now = false;
+    if (batteries_charged && !batteries_charged_now)
+    {
+        Reset();
+    }
+
+    if (!batteries_charged)
+    {
+        delay(250);
+        digitalWrite(BATTERY_STATUS_LED, HIGH);
+        delay(250);
+        digitalWrite(BATTERY_STATUS_LED, LOW);
+        return;
+    }
+
     if (PS4.isConnected())
     {
         if (!controller_connected)
@@ -234,9 +263,7 @@ void loop()
     {
         if (controller_connected)
         {
-            control.Reset();
-            joystick.Update();
-            distance_meter.Reset();
+            Reset();
             controller_connected = false;
         }
 
