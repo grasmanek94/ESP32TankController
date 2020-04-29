@@ -33,7 +33,8 @@ public:
 	bool IsBusy() const;
 
 	void Update();
-
+    void Reset();
+	
 private:
 	float distance;
 	bool error;

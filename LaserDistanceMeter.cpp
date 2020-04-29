@@ -12,11 +12,28 @@ LaserDistanceMeter::LaserDistanceMeter(HardwareSerial *port)
 	  last_command_time{0}, comm{port},
 	  buffer{}, size{0}
 {
+	Reset();
+}
+
+void LaserDistanceMeter::Reset()
+{
 	buffer[0] = 0;
+	size = 0;
+	distance = 0.0f;
+	error = false;
+	keep_laser_on = false;
+    measurement_running = false;
+	laser_ack = false;
+	module_state = false;
+	has_new_distance = false;
+    last_command_time = 0;
+
 	if(comm != nullptr)
 	{
 		comm->begin(baud);
 	}
+
+	SendCommand(Command::LASER_CLOSE);
 }
 
 LaserDistanceMeter::~LaserDistanceMeter()
@@ -102,7 +119,7 @@ void LaserDistanceMeter::Update()
 	{
 		return;
 	}
-	
+
 	bool laser_ack_recv = false;
 	bool measurement_recv = false;
 	bool state_recv = false;
