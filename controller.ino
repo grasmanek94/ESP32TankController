@@ -272,6 +272,7 @@ void loop()
         // exit routines here
         Reset();
         controller_connected = false;
+        digitalWrite(BATTERY_STATUS_LED, LOW);
     }
     else if (PS4.isConnected() && !controller_connected)
     {
@@ -281,6 +282,7 @@ void loop()
         // PS4.setFlashRate(100, 200); // 100ms on, 200ms off [0,2550], {0,0} => ON
         // PS4.setRumble(100, 200); // weak, strong rumble [0,255]
         PS4.sendToController();
+        digitalWrite(BATTERY_STATUS_LED, HIGH);
     }
 
     if (controller_connected && batteries_charged)
