@@ -1,6 +1,7 @@
 #include "esp_bt_main.h"
 #include "Esp.h"
 #include "PS4Controller.h"
+#include "Ramp.h"
 #include "Joystick.hpp"
 #include "MotorControl.hpp"
 #include "LaserDistanceMeter.hpp"
@@ -72,6 +73,12 @@ const int max_battery_charge_failures = 4;
 const milliseconds battery_update_time = 250;
 int battery_charge_failures = max_battery_charge_failures;
 
+rampInt ramp_speed_left;
+rampInt ramp_speed_right;
+const milliseconds ramp_time = 1000;
+const int ramp_max_speed = 1000;
+const float ramp_delta = (float)ramp_max_speed / (float)ramp_time;
+
 int max_speed;
 
 void Reset()
@@ -133,7 +140,13 @@ void PerformMotorControls(unsigned long time_now)
         int turret_yaw = MotorControl::remap(joystick.GetValue(Joystick::Axis::RIGHT_X), Joystick::AXIS_MIN, Joystick::AXIS_MAX, 1000, -1000);
         int turret_pitch = MotorControl::remap(joystick.GetValue(Joystick::Axis::RIGHT_Y), Joystick::AXIS_MIN, Joystick::AXIS_MAX, -1000, 1000);
 
-        control.MoveTracks(speedL, speedR);
+        milliseconds ramp_time_l = (float)(speedL - ramp_speed_left.getValue()) * ramp_delta;
+        milliseconds ramp_time_r = (float)(speedR - ramp_speed_right.getValue()) * ramp_delta;
+        
+        ramp_speed_left.go(speedL, ramp_time_l);
+        ramp_speed_right.go(speedR, ramp_time_r);
+
+        control.MoveTracks(ramp_speed_left.update(), ramp_speed_right.update());
         control.MoveTurret(turret_yaw);
         control.MovePitch(turret_pitch);
 
@@ -232,20 +245,22 @@ void loop()
 
     bool batteries_charged = battery_charge_failures < max_battery_charge_failures;
 
-    if(next_battery_update < now)
+    if (next_battery_update < now)
     {
         next_battery_update = now + battery_update_time;
 
-        if(battery_meter.CutOff())
+        if (battery_meter.CutOff())
         {
             ++battery_charge_failures;
             digitalWrite(BATTERY_STATUS_LED, battery_charge_failures % 2);
-            if(batteries_charged && !(battery_charge_failures < max_battery_charge_failures))
+            if (batteries_charged && !(battery_charge_failures < max_battery_charge_failures))
             {
                 batteries_charged = false;
                 Reset();
             }
-        } else {
+        }
+        else
+        {
             battery_charge_failures = 0;
             batteries_charged = true;
             digitalWrite(BATTERY_STATUS_LED, LOW);
@@ -267,8 +282,8 @@ void loop()
         // PS4.setRumble(100, 200); // weak, strong rumble [0,255]
         PS4.sendToController();
     }
-    
-    if(controller_connected && batteries_charged)
+
+    if (controller_connected && batteries_charged)
     {
         PerformMotorControls(now);
     }
