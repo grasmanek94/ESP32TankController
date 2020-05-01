@@ -2,47 +2,72 @@
 
 #include "BatteryMeter.hpp"
 
-#include "PS4Controller.h"
-
 namespace TankController
 {
 
-BatteryMeter::BatteryMeter(int cell_pin_1, int cell_pin_2)
-	: pin_1(cell_pin_1), pin_2(cell_pin_2)
+BatteryMeter::BatteryMeter(
+	int cell_pin_1, int cell_pin_2,
+	float r1_ohms, float r2_ohms, float r3_ohms,
+	float r4_ohms, float ref_millivolts,
+	float cutoff_millivolts, float resolution)
+	: pin_1{cell_pin_1}, pin_2{cell_pin_2},
+	R1{r1_ohms}, R2{r2_ohms}, R3{r3_ohms},
+	R4{r4_ohms}, ref_mv{ref_millivolts}, 
+	cutoff{cutoff_millivolts}, res{resolution},
+	cache_c1{0.0f}, cache_c2{0.0f},
+    cache_c1_time{0}, cache_c2_time{0}
 {
 	pinMode(pin_1, INPUT);
 	pinMode(pin_2, INPUT);
+
+	analogSetPinAttenuation(pin_1, ADC_11db);
+	analogSetPinAttenuation(pin_2, ADC_11db);
 }
 
 BatteryMeter::~BatteryMeter()
 {
 }
 
-bool BatteryMeter::Cell1Okay()
+
+bool BatteryMeter::CutOff()
 {
-	// minimum lipo batt V is 3.2V, so lets use 3.25V / 3250 mV
-	// 4.3V max total, resistors are 3.3:1 ratio (3.3+1=4.3)
-	// Vref / Vmax * Vmin =
-	// 3.3 / 4.3 * 3.25 = 2.494 V = 2494 mV
-	// 1 mV = 4096/3300 read value = 1.241
-	// 2494 * 1.241.... = 3095
-	return analogRead(pin_1) > 3095;
+	return 
+		GetCellMillivolts(0) < cutoff || 
+		GetCellMillivolts(1) < cutoff;
 }
 
-bool BatteryMeter::Cell2Okay()
+float BatteryMeter::GetCellMillivolts(unsigned int cell)
 {
-	return analogRead(pin_2) > 3095;
+	unsigned long now = millis();
+	unsigned long& local_cache_validity = (cell == 0) ? cache_c1_time : cache_c2_time;
+	float& cache_value = (cell == 0) ? cache_c1 : cache_c2;
+	if(local_cache_validity >= now)
+	{
+		return cache_value;
+	}
+
+	float r_measure = (cell == 0) ? R3 : R1;
+	float r_passive = (cell == 0) ? R4 : R2;
+
+	unsigned int buffer = analogRead((cell == 0) ? pin_1 : pin_2);
+
+	if(buffer >= 4095)
+	{
+		return 0.0f;
+	}
+
+	float diff = (cell == 0) ? 0.0f : GetCellMillivolts(0);
+
+	float r_total = r_measure + r_passive;
+
+	float pin_voltage = (float)buffer * ref_mv / res;
+
+	float v_total = pin_voltage * r_total / r_measure;
+
+	local_cache_validity = now + cache_validity;
+	cache_value = v_total - diff;
+
+	return cache_value;
 }
 
-bool BatteryMeter::ControllerOkay()
-{
-	return PS4.isConnected() &&
-		   (PS4.data.status.battery > 1 || PS4.data.status.charging);
-}
-
-bool BatteryMeter::AllOkay()
-{
-	return Cell1Okay() && Cell2Okay() && ControllerOkay();
-}
-
-} // namespace TankController
+} // namespace TruckController

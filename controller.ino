@@ -236,7 +236,7 @@ void loop()
     {
         next_battery_update = now + battery_update_time;
 
-        if(!battery_meter.AllOkay())
+        if(battery_meter.CutOff())
         {
             ++battery_charge_failures;
             digitalWrite(BATTERY_STATUS_LED, battery_charge_failures % 2);
@@ -271,10 +271,5 @@ void loop()
     if(controller_connected && batteries_charged)
     {
         PerformMotorControls(now);
-    }
-    else
-    {
-        printDeviceAddress();
-        delay(100);
     }
 }
