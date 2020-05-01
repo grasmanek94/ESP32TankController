@@ -140,8 +140,8 @@ void PerformMotorControls(unsigned long time_now)
         int turret_yaw = MotorControl::remap(joystick.GetValue(Joystick::Axis::RIGHT_X), Joystick::AXIS_MIN, Joystick::AXIS_MAX, 1000, -1000);
         int turret_pitch = MotorControl::remap(joystick.GetValue(Joystick::Axis::RIGHT_Y), Joystick::AXIS_MIN, Joystick::AXIS_MAX, -1000, 1000);
 
-        milliseconds ramp_time_l = (float)(speedL - ramp_speed_left.getValue()) * ramp_delta;
-        milliseconds ramp_time_r = (float)(speedR - ramp_speed_right.getValue()) * ramp_delta;
+        milliseconds ramp_time_l = abs((float)(speedL - ramp_speed_left.getValue()) * ramp_delta);
+        milliseconds ramp_time_r = abs((float)(speedR - ramp_speed_right.getValue()) * ramp_delta);
         
         ramp_speed_left.go(speedL, ramp_time_l);
         ramp_speed_right.go(speedR, ramp_time_r);
