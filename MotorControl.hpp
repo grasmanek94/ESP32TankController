@@ -26,6 +26,11 @@ public:
 
 private:
 
+	const static int USMIN = 0;
+	const static int USMAX = 1000000;
+
+	const static int ESC_ARM = 500;
+
 	struct Calibration
 	{
 		int MOVLMIN;
@@ -36,6 +41,11 @@ private:
 		Calibration(int lmin, int lmax, int zero, int rmin, int rmax)
 		 : MOVLMIN(lmin), MOVLMAX(lmax), MOVZERO(zero), MOVRMIN(rmin), MOVRMAX(rmax)
 		 {}
+		 
+		bool IsUsMax()
+		{
+			return MOVLMIN == USMAX && MOVLMAX == USMAX && MOVRMIN == USMAX && MOVRMAX == USMAX;
+		}
 	};
 
 	struct function_info
@@ -47,11 +57,6 @@ private:
 
 	void SetServo(function_info& info, int speed);
 	void AttachServo(function_info& info);
-
-	const static int USMIN = 0;
-	const static int USMAX = 1000000;
-
-	const static int ESC_ARM = 500;
 
 	function_info relay_cannon;
 	function_info motor_turn_turret;

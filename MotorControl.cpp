@@ -19,15 +19,18 @@ ServoNum	LMIN	LMAX	RMIN	RMAX	MID
 
 */
 
-MotorControl::MotorControl() : 
-	relay_cannon{25, Calibration{1000000,1000000,0,1000000,1000000}, {}}, // Cannon
-	motor_turn_turret{33, Calibration{1386,1435,1480,1528,1577}, {}}, // Yaw Turret
-	motor_pitch_cannon{32, Calibration{1372,1420,1470,1518,1567}, {}}, // Pitch Turret
-	motor_move_l{34, Calibration{800,1450,1500,1550,2100}, {}}, // Left Engine
-	motor_move_r{35, Calibration{800,1450,1500,1550,2100}, {}}, // Right Engine
-    relay_enabled{ false }
+MotorControl::MotorControl() : relay_cannon{14, Calibration{USMAX, USMAX, 0, USMAX, USMAX}, {}},	  // Cannon
+							   motor_turn_turret{15, Calibration{1386, 1435, 1480, 1528, 1577}, {}},  // Yaw Turret
+							   motor_pitch_cannon{27, Calibration{1372, 1420, 1470, 1518, 1567}, {}}, // Pitch Turret
+							   motor_move_l{32, Calibration{800, 1450, 1500, 1550, 2100}, {}},		  // Left Engine
+							   motor_move_r{33, Calibration{800, 1450, 1500, 1550, 2100}, {}},		  // Right Engine
+							   relay_enabled{false}
 {
-	AttachServo(relay_cannon);
+	pinMode(relay_cannon.pin, OUTPUT);
+	gpio_set_drive_capability((gpio_num_t)relay_cannon.pin, GPIO_DRIVE_CAP_MAX);
+	
+	Serial.printf("RELAY PIN: %d\r\n", relay_cannon.pin);
+
 	AttachServo(motor_turn_turret);
 	AttachServo(motor_pitch_cannon);
 	AttachServo(motor_move_l);
@@ -38,7 +41,6 @@ MotorControl::MotorControl() :
 
 void MotorControl::Reset()
 {
-	SetServo(relay_cannon, 0);
 	SetServo(motor_turn_turret, 0);
 	SetServo(motor_pitch_cannon, 0);
 	SetServo(motor_move_r, 0);
@@ -73,18 +75,13 @@ void MotorControl::MoveTurret(int turn_speed)
 
 void MotorControl::RelayCannon(bool enabled)
 {
-	SetServo(relay_cannon, (enabled ? 1000 : 0));
+	digitalWrite(relay_cannon.pin, enabled);
 	relay_enabled = enabled;
 }
 
 bool MotorControl::RelayEnabled()
 {
-	if (relay_enabled)
-	{
-		return true;
-	}
-
-	return relay_cannon.servo.read() != 0;
+	return relay_enabled;
 }
 
 int MotorControl::remap(int value, int start1, int stop1, int start2, int stop2)
@@ -98,7 +95,7 @@ int MotorControl::remap(int value, int start1, int stop1, int start2, int stop2)
 	return (int)(fstart2 + (fstop2 - fstart2) * ((fvalue - fstart1) / (fstop1 - fstart1)));
 }
 
-void MotorControl::SetServo(function_info& info, int speed)
+void MotorControl::SetServo(function_info &info, int speed)
 {
 	int value = info.calibration.MOVZERO;
 
@@ -114,9 +111,9 @@ void MotorControl::SetServo(function_info& info, int speed)
 	info.servo.write(value);
 }
 
-void MotorControl::AttachServo(function_info& info)
+void MotorControl::AttachServo(function_info &info)
 {
 	info.servo.attach(info.pin, -1, USMIN, USMAX, USMIN, USMAX);
 }
 
-}
+} // namespace TankController

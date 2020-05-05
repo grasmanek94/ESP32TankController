@@ -12,6 +12,7 @@ public:
 	static const int AXIS_MIN = -127;
 	static const int AXIS_MAX = 128;
 	static const int AXIS_RANGE = AXIS_MAX - AXIS_MIN;
+	static const int AXIS_DEADZONE = 5;
 
 	enum class Button : size_t
 	{

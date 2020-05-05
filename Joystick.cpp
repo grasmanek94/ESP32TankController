@@ -7,11 +7,11 @@
 namespace TankController
 {
 
-Joystick::Joystick() :
-	button_state{}, button_pressed{}, button_released{},
-	axis_default{ 0, 0, AXIS_MIN, 0, 0, AXIS_MIN },
-	axis{ axis_default }, axis_pressed{}, axis_released{}
-{ }
+Joystick::Joystick() : button_state{}, button_pressed{}, button_released{},
+					   axis_default{0, 0, AXIS_MIN, 0, 0, AXIS_MIN},
+					   axis{axis_default}, axis_pressed{}, axis_released{}
+{
+}
 
 void Joystick::Update()
 {
@@ -21,7 +21,7 @@ void Joystick::Update()
 	std::array<bool, (size_t)Button::MAX> temp_button_state = button_state;
 	std::array<int, (size_t)Axis::MAX> temp_axis = axis;
 
-	if(!CheckDevice())
+	if (!CheckDevice())
 	{
 		for (size_t i = 0; i < (size_t)Button::MAX; ++i)
 		{
@@ -68,13 +68,13 @@ void Joystick::Update()
 	temp_button_state[(size_t)Button::HOME] = PS4.data.button.ps;
 
 	temp_button_state[(size_t)Button::TOUCHPAD] = PS4.data.button.touchpad;
-		
+
 	temp_axis[(size_t)Axis::L2] = PS4.data.analog.button.l2;
 	temp_axis[(size_t)Axis::R2] = PS4.data.analog.button.r2;
-	temp_axis[(size_t)Axis::LEFT_X] = PS4.event.analog_move.stick.lx;
-	temp_axis[(size_t)Axis::LEFT_Y] = PS4.event.analog_move.stick.ly;
-	temp_axis[(size_t)Axis::RIGHT_X] = PS4.event.analog_move.stick.rx;
-	temp_axis[(size_t)Axis::RIGHT_Y] = PS4.event.analog_move.stick.ry;
+	temp_axis[(size_t)Axis::LEFT_X] = PS4.data.analog.stick.lx;
+	temp_axis[(size_t)Axis::LEFT_Y] = PS4.data.analog.stick.ly;
+	temp_axis[(size_t)Axis::RIGHT_X] = PS4.data.analog.stick.rx;
+	temp_axis[(size_t)Axis::RIGHT_Y] = PS4.data.analog.stick.ry;
 
 	for (size_t i = 0; i < (size_t)Button::MAX; ++i)
 	{
@@ -128,7 +128,12 @@ bool Joystick::GetState(Axis axis_number) const
 
 int Joystick::GetValue(Axis axis_number) const
 {
+	if (abs(axis[(size_t)axis_number]) < AXIS_DEADZONE)
+	{
+		return 0;
+	}
+
 	return axis[(size_t)axis_number];
 }
 
-}
+} // namespace TankController

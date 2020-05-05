@@ -63,21 +63,21 @@ bool controller_connected = false;
 using milliseconds = unsigned long;
 
 milliseconds next_control_update = 0;
-const milliseconds control_update_time = 10;
+const milliseconds control_update_time = 5;
 
 milliseconds relay_disable_time = 0;
-const milliseconds relay_disable_timeout = 75;
+const milliseconds relay_disable_timeout = 10000;
 
 milliseconds next_battery_update = 0;
 const int max_battery_charge_failures = 4;
-const milliseconds battery_update_time = 250;
+const milliseconds battery_update_time = 125;
 int battery_charge_failures = max_battery_charge_failures;
 
-rampInt ramp_speed_left;
-rampInt ramp_speed_right;
+//rampInt ramp_speed_left;
+//rampInt ramp_speed_right;
 const milliseconds ramp_time = 1000;
 const int ramp_max_speed = 1000;
-const float ramp_delta = (float)ramp_max_speed / (float)ramp_time;
+const float ramp_delta = (float)ramp_time / (float)ramp_max_speed;
 
 int max_speed;
 
@@ -140,13 +140,7 @@ void PerformMotorControls(unsigned long time_now)
         int turret_yaw = MotorControl::remap(joystick.GetValue(Joystick::Axis::RIGHT_X), Joystick::AXIS_MIN, Joystick::AXIS_MAX, 1000, -1000);
         int turret_pitch = MotorControl::remap(joystick.GetValue(Joystick::Axis::RIGHT_Y), Joystick::AXIS_MIN, Joystick::AXIS_MAX, -1000, 1000);
 
-        milliseconds ramp_time_l = abs((float)(speedL - ramp_speed_left.getValue()) * ramp_delta);
-        milliseconds ramp_time_r = abs((float)(speedR - ramp_speed_right.getValue()) * ramp_delta);
-        
-        ramp_speed_left.go(speedL, ramp_time_l);
-        ramp_speed_right.go(speedR, ramp_time_r);
-
-        control.MoveTracks(ramp_speed_left.update(), ramp_speed_right.update());
+        control.MoveTracks(speedL, speedR);
         control.MoveTurret(turret_yaw);
         control.MovePitch(turret_pitch);
 
@@ -253,10 +247,18 @@ void loop()
         {
             ++battery_charge_failures;
             digitalWrite(BATTERY_STATUS_LED, battery_charge_failures % 2);
-            if (batteries_charged && !(battery_charge_failures < max_battery_charge_failures))
+            if (battery_charge_failures >= max_battery_charge_failures)
             {
-                batteries_charged = false;
-                Reset();
+                control.MoveTracks(0, 0);
+                control.MoveTurret(0);
+                control.MovePitch(0);
+                control.RelayCannon(false);
+
+                if (batteries_charged)
+                {
+                    batteries_charged = false;
+                    Reset();
+                }
             }
         }
         else
@@ -282,11 +284,11 @@ void loop()
         // PS4.setFlashRate(100, 200); // 100ms on, 200ms off [0,2550], {0,0} => ON
         // PS4.setRumble(100, 200); // weak, strong rumble [0,255]
         PS4.sendToController();
-        digitalWrite(BATTERY_STATUS_LED, HIGH);
     }
 
     if (controller_connected && batteries_charged)
     {
+        digitalWrite(BATTERY_STATUS_LED, HIGH);
         PerformMotorControls(now);
     }
 }
