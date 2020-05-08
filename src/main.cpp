@@ -96,7 +96,7 @@ void Reset()
 void setup()
 {
     esp32_adc2_setup();
-    
+
     Serial.begin(115200);
 
     btStart();
@@ -297,5 +297,88 @@ void loop()
     {
         digitalWrite(BATTERY_STATUS_LED, HIGH);
         PerformMotorControls(now);
+    }
+}
+
+/////////// CLIENT
+
+#include "RadioHead/RH_RF95.h"
+#include "RadioHead/RHEncryptedDriver.h"
+#include <hwcrypto/aes.h>
+#include <BlockCipher.h>
+RH_RF95 rf95;
+Speck myCipher;
+RHEncryptedDriver myDriver(rf95, myCipher);
+
+float frequency = 868.0;
+unsigned char encryptkey[16] = {'6', 'x', '3', 'L', 'h', '5', '=', 'g', 'p', 'h', 'Q', '[', '{', 'B', 'K', 'V'};
+char HWMessage[] = "Hello World ! I'm happy if you can read me";
+uint8_t HWMessageLen;
+
+void setup_lora_client()
+{
+    HWMessageLen = strlen(HWMessage);
+    if (rf95.init())
+    {
+        // Setup ISM frequency
+        rf95.setFrequency(frequency);
+        // Setup Power,dBm
+        rf95.setTxPower(13);
+        myCipher.setKey(encryptkey, sizeof(encryptkey));
+    }
+}
+
+void loop_lora_client()
+{
+    uint8_t data[HWMessageLen + 1] = {0};
+    for (uint8_t i = 0; i <= HWMessageLen; i++)
+    {
+        data[i] = (uint8_t)HWMessage[i];
+    }
+    myDriver.send(data, sizeof(data)); // Send out ID + Sensor data to LoRa gateway
+    Serial.print("Sent: ");
+    Serial.println((char *)&data);
+}
+
+/////////// SERVER
+
+#include "RadioHead/RH_RF95.h"
+#include "RadioHead/RHEncryptedDriver.h"
+#include <Speck.h>
+
+RH_RF95 rf95;
+Speck myCipher;
+RHEncryptedDriver myDriver(rf95, myCipher);
+
+float frequency = 868.0;
+unsigned char encryptkey[16] = {'6', 'x', '3', 'L', 'h', '5', '=', 'g', 'p', 'h', 'Q', '[', '{', 'B', 'K', 'V'};
+
+void setup_lora_server()
+{
+    if (rf95.init())
+    {
+        // Setup ISM frequency
+        rf95.setFrequency(frequency);
+        // Setup Power,dBm
+        rf95.setTxPower(13);
+        myCipher.setKey(encryptkey, 16);
+    }
+}
+
+void loop_lora_server()
+{
+    if (myDriver.available())
+    {
+        uint8_t buf[myDriver.maxMessageLength()];
+        uint8_t len = sizeof(buf);
+        if (myDriver.recv(buf, &len))
+        {
+            Serial.print("Received: ");
+            Serial.println((char *)&buf);
+        }
+        else
+        {
+            Serial.println("recv failed");
+        }
     }
 }
