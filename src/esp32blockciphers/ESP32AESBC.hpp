@@ -1,11 +1,26 @@
 #pragma once
 
+#include <vector>
+
+#include <hwcrypto/aes.h>
+
 #include "BlockCipher.h"
 
-class ESP32AESBC: public BlockCipher
+enum class ESP32AESKeySize
 {
+    S128 = 16,
+    S192 = 24,
+    S256 = 32
+};
+
+class ESP32AESBC : public BlockCipher
+{
+private:
+    esp_aes_context aes_context;
+    ESP32AESKeySize key_size;
+    std::vector<uint8_t> bc_key;
 public:
-    ESP32AESBC();
+    ESP32AESBC(ESP32AESKeySize size = ESP32AESKeySize::S128);
     virtual ~ESP32AESBC();
     virtual size_t blockSize() const override;
     virtual size_t keySize() const override;
