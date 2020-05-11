@@ -17,8 +17,7 @@ class ESP32AESBC : public BlockCipher
 {
 private:
     esp_aes_context aes_context;
-    ESP32AESKeySize key_size;
-    std::vector<uint8_t> bc_key;
+    
 public:
     ESP32AESBC(ESP32AESKeySize size = ESP32AESKeySize::S128);
     virtual ~ESP32AESBC();

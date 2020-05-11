@@ -14,7 +14,7 @@
 
 #include "RHGenericDriver.h"
 #ifdef RH_ENABLE_ENCRYPTION_MODULE
-#include <BlockCipher.h>
+#include "../esp32blockciphers/BlockCipher.h"
 
 // Undef this if trailing 0 on each enrypted message is ok.
 // This defined means a first byte of the payload is used to encode content length

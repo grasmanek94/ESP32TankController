@@ -3,6 +3,6 @@
     "configuration": "PSRAM=disabled,PartitionScheme=default,CPUFreq=240,FlashMode=qio,FlashFreq=80,FlashSize=4M,UploadSpeed=921600,DebugLevel=none",
     "programmer": "AVRISP mkII",
     "sketch": "project.ino",
-    "port": "COM4",
+    "port": "COM6",
     "output": "C:/TMP/ArduinoBuilds/"
 }

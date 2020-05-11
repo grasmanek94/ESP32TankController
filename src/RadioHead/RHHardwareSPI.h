@@ -79,7 +79,13 @@ public:
     void end();
 #else
     // not supported on ATTiny etc
-    uint8_t transfer(uint8_t /*data*/) {return 0;}
+    uint8_t transfer(uint8_t /*data*/) {
+        if(Serial)
+        {
+            Serial.println("NO SPI IF");
+        }
+        return 0;
+    }
     void begin(){}
     void end(){}
 

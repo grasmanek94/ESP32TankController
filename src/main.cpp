@@ -10,8 +10,8 @@
 #include "LaserDistanceMeter.hpp"
 #include "BatteryMeter.hpp"
 
-using namespace TankController;
-
+namespace TankController
+{
 static bool init_bluetooth()
 {
     if (!btStart())
@@ -300,78 +300,105 @@ void loop()
     }
 }
 
+} // namespace TankController
+
 /////////// CLIENT
 
 #include "RadioHead/RH_RF95.h"
 #include "RadioHead/RHEncryptedDriver.h"
-#include <hwcrypto/aes.h>
-#include <BlockCipher.h>
-RH_RF95 rf95;
-Speck myCipher;
-RHEncryptedDriver myDriver(rf95, myCipher);
+#include "esp32blockciphers/ESP32AESBC.hpp"
+
+namespace LoraClient
+{
+
+RH_RF95 rf95(15, 2);
+ESP32AESBC cipher;
+RH_RF95& driver = rf95;
+//RHEncryptedDriver driver(rf95, cipher);
 
 float frequency = 868.0;
 unsigned char encryptkey[16] = {'6', 'x', '3', 'L', 'h', '5', '=', 'g', 'p', 'h', 'Q', '[', '{', 'B', 'K', 'V'};
 char HWMessage[] = "Hello World ! I'm happy if you can read me";
 uint8_t HWMessageLen;
 
-void setup_lora_client()
+void setup()
 {
+    delay(1000);
+
+    Serial.begin(115200);
+
+    Serial.println("Setup");
+
     HWMessageLen = strlen(HWMessage);
-    if (rf95.init())
+    while (!rf95.init())
     {
         // Setup ISM frequency
         rf95.setFrequency(frequency);
         // Setup Power,dBm
         rf95.setTxPower(13);
-        myCipher.setKey(encryptkey, sizeof(encryptkey));
+        cipher.setKey(encryptkey, sizeof(encryptkey));
     }
+
+    Serial.println("rf95.init() Done");
 }
 
-void loop_lora_client()
+void loop()
 {
-    uint8_t data[HWMessageLen + 1] = {0};
-    for (uint8_t i = 0; i <= HWMessageLen; i++)
-    {
-        data[i] = (uint8_t)HWMessage[i];
-    }
-    myDriver.send(data, sizeof(data)); // Send out ID + Sensor data to LoRa gateway
+    Serial.println("Loop");
+    driver.send((uint8_t*)HWMessage, sizeof(HWMessage)); // Send out ID + Sensor data to LoRa gateway
     Serial.print("Sent: ");
-    Serial.println((char *)&data);
+    Serial.println((char *)&HWMessage);
+    delay(1000);
 }
+
+} // namespace LoraClient
 
 /////////// SERVER
 
 #include "RadioHead/RH_RF95.h"
 #include "RadioHead/RHEncryptedDriver.h"
-#include <Speck.h>
+#include "esp32blockciphers/ESP32AESBC.hpp"
 
-RH_RF95 rf95;
-Speck myCipher;
-RHEncryptedDriver myDriver(rf95, myCipher);
+namespace LoraServer
+{
+
+RH_RF95 rf95(15, 2);
+ESP32AESBC cipher;
+RH_RF95& driver = rf95;
+//RHEncryptedDriver driver(rf95, cipher);
 
 float frequency = 868.0;
 unsigned char encryptkey[16] = {'6', 'x', '3', 'L', 'h', '5', '=', 'g', 'p', 'h', 'Q', '[', '{', 'B', 'K', 'V'};
 
-void setup_lora_server()
+void setup()
 {
-    if (rf95.init())
+    Serial.begin(115200);
+    delay(1000);
+
+    Serial.println("Setup");
+
+    while (!rf95.init())
     {
         // Setup ISM frequency
         rf95.setFrequency(frequency);
         // Setup Power,dBm
         rf95.setTxPower(13);
-        myCipher.setKey(encryptkey, 16);
+        cipher.setKey(encryptkey, 16);
+        delay(2500);
     }
+
+    Serial.println("rf95.init() Done");
 }
 
-void loop_lora_server()
+void loop()
 {
-    if (myDriver.available())
+    //Serial.println("Loop");
+    if (driver.available())
     {
-        uint8_t buf[myDriver.maxMessageLength()];
+        Serial.println("Avail");
+        uint8_t buf[driver.maxMessageLength()];
         uint8_t len = sizeof(buf);
-        if (myDriver.recv(buf, &len))
+        if (driver.recv(buf, &len))
         {
             Serial.print("Received: ");
             Serial.println((char *)&buf);
@@ -381,4 +408,17 @@ void loop_lora_server()
             Serial.println("recv failed");
         }
     }
+    delay(1000);
+}
+
+} // namespace LoraServer
+
+void setup()
+{
+    LoraClient::setup();
+}
+
+void loop()
+{
+    LoraClient::loop();
 }

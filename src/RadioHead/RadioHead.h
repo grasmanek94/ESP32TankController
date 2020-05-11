@@ -1324,6 +1324,7 @@ these examples and explanations and extend them to suit your needs.
  #include <Arduino.h>
  #include <SPI.h>
  #define RH_HAVE_HARDWARE_SPI
+
  #define RH_HAVE_SERIAL
  #define RH_MISSING_SPIUSINGINTERRUPT
 

@@ -125,7 +125,7 @@ void RHHardwareSPI::begin()
 
     // Save the settings for use in transactions
    _settings = SPISettings(frequency, bitOrder, dataMode);
-   SPI.begin();
+   SPI.begin(14, 12, 13, 15);
     
 #else // SPI_HAS_TRANSACTION
     
