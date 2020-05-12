@@ -302,24 +302,18 @@ void loop()
 
 } // namespace TankController
 
-/////////// CLIENT
-
 #include "RadioHead/RH_RF95.h"
 #include "RadioHead/RHEncryptedDriver.h"
 #include "esp32blockciphers/ESP32AESBC.hpp"
 
-namespace LoraClient
+namespace LoRa
 {
 
-RH_RF95 rf95(15, 2);
+RH_RF95 rf95(5, 2);
 ESP32AESBC cipher;
-RH_RF95& driver = rf95;
-//RHEncryptedDriver driver(rf95, cipher);
-
+RHEncryptedDriver driver(rf95, cipher);
 float frequency = 868.0;
 unsigned char encryptkey[16] = {'6', 'x', '3', 'L', 'h', '5', '=', 'g', 'p', 'h', 'Q', '[', '{', 'B', 'K', 'V'};
-char HWMessage[] = "Hello World ! I'm happy if you can read me";
-uint8_t HWMessageLen;
 
 void setup()
 {
@@ -327,23 +321,23 @@ void setup()
 
     Serial.begin(115200);
 
-    Serial.println("Setup");
-
-    HWMessageLen = strlen(HWMessage);
     while (!rf95.init())
     {
-        // Setup ISM frequency
-        rf95.setFrequency(frequency);
-        // Setup Power,dBm
-        rf95.setTxPower(13);
-        cipher.setKey(encryptkey, sizeof(encryptkey));
+        delay(10);
     }
 
-    Serial.println("rf95.init() Done");
+    // Setup ISM frequency
+    rf95.setFrequency(frequency);
+    // Setup Power,dBm
+    rf95.setTxPower(13);
+    cipher.setKey(encryptkey, sizeof(encryptkey));
 }
 
-void loop()
+void client()
 {
+    static const char HWMessage[] = "Hello World ! I'm happy if you can read me";
+    static const uint8_t HWMessageLen = sizeof(HWMessage);
+
     Serial.println("Loop");
     driver.send((uint8_t*)HWMessage, sizeof(HWMessage)); // Send out ID + Sensor data to LoRa gateway
     Serial.print("Sent: ");
@@ -351,46 +345,7 @@ void loop()
     delay(1000);
 }
 
-} // namespace LoraClient
-
-/////////// SERVER
-
-#include "RadioHead/RH_RF95.h"
-#include "RadioHead/RHEncryptedDriver.h"
-#include "esp32blockciphers/ESP32AESBC.hpp"
-
-namespace LoraServer
-{
-
-RH_RF95 rf95(15, 2);
-ESP32AESBC cipher;
-RH_RF95& driver = rf95;
-//RHEncryptedDriver driver(rf95, cipher);
-
-float frequency = 868.0;
-unsigned char encryptkey[16] = {'6', 'x', '3', 'L', 'h', '5', '=', 'g', 'p', 'h', 'Q', '[', '{', 'B', 'K', 'V'};
-
-void setup()
-{
-    Serial.begin(115200);
-    delay(1000);
-
-    Serial.println("Setup");
-
-    while (!rf95.init())
-    {
-        // Setup ISM frequency
-        rf95.setFrequency(frequency);
-        // Setup Power,dBm
-        rf95.setTxPower(13);
-        cipher.setKey(encryptkey, 16);
-        delay(2500);
-    }
-
-    Serial.println("rf95.init() Done");
-}
-
-void loop()
+void server()
 {
     //Serial.println("Loop");
     if (driver.available())
@@ -411,14 +366,14 @@ void loop()
     delay(1000);
 }
 
-} // namespace LoraServer
+} // namespace LoRa
 
 void setup()
 {
-    LoraClient::setup();
+    LoRa::setup();
 }
 
 void loop()
 {
-    LoraClient::loop();
+    LoRa::client();
 }
