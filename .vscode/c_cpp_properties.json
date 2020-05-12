@@ -59,7 +59,9 @@
                 "${workspaceFolder}/src/servo/*",
                 "${workspaceFolder}/src/servo/**",
                 "${LOCALAPPDATA}/Arduino15/packages/esp32/hardware/esp32/1.0.4/**",
-                "${LOCALAPPDATA}/Arduino15/packages/esp32/tools/**"
+                "${LOCALAPPDATA}/Arduino15/packages/esp32/tools/**",
+                "C:\\Users\\Rafal\\AppData\\Local\\Arduino15\\packages\\esp32\\hardware\\esp32\\1.0.4\\**",
+                "C:\\Users\\Rafal\\AppData\\Local\\Arduino15\\packages\\esp32\\tools\\**"
             ],
             "defines": [
                 "_DEBUG",
@@ -82,6 +84,8 @@
         {
             "name": "Win32",
             "includePath": [
+                "C:\\Users\\Rafal\\AppData\\Local\\Arduino15\\packages\\esp32\\tools\\**",
+                "C:\\Users\\Rafal\\AppData\\Local\\Arduino15\\packages\\esp32\\hardware\\esp32\\1.0.4\\**",
                 "${workspaceFolder}/",
                 "${workspaceFolder}/*",
                 "${workspaceFolder}/**",

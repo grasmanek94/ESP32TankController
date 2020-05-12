@@ -12,28 +12,6 @@
 
 namespace TankController
 {
-static bool init_bluetooth()
-{
-    if (!btStart())
-    {
-        Serial.println("Failed to initialize controller");
-        return false;
-    }
-
-    if (esp_bluedroid_init() != ESP_OK)
-    {
-        Serial.println("Failed to initialize bluedroid");
-        return false;
-    }
-
-    if (esp_bluedroid_enable() != ESP_OK)
-    {
-        Serial.println("Failed to enable bluedroid");
-        return false;
-    }
-
-    return true;
-}
 
 void printDeviceAddress()
 {
