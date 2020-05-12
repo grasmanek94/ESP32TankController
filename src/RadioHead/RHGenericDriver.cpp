@@ -52,7 +52,6 @@ bool RHGenericDriver::waitAvailableTimeout(uint16_t timeout)
 
 bool RHGenericDriver::waitPacketSent()
 {
-    Serial.println(__FUNCTION__);
     while (_mode == RHModeTx)
     {
         YIELD; // Wait for any previous transmit to finish
@@ -62,7 +61,6 @@ bool RHGenericDriver::waitPacketSent()
 
 bool RHGenericDriver::waitPacketSent(uint16_t timeout)
 {
-    Serial.println(__FUNCTION__);
     unsigned long starttime = millis();
     while ((millis() - starttime) < timeout)
     {
@@ -76,8 +74,6 @@ bool RHGenericDriver::waitPacketSent(uint16_t timeout)
 // Wait until no channel activity detected or timeout
 bool RHGenericDriver::waitCAD()
 {
-    Serial.println(__FUNCTION__);
-
     if (!_cad_timeout)
         return true;
 

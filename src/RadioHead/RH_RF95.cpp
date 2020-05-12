@@ -359,7 +359,6 @@ bool RH_RF95::setFrequency(float centre)
 
 void RH_RF95::setModeIdle()
 {
-    Serial.println(__FUNCTION__);
     if (_mode != RHModeIdle)
     {
         spiWrite(RH_RF95_REG_01_OP_MODE, RH_RF95_MODE_STDBY);
