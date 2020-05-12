@@ -151,6 +151,11 @@
                 "GCC_NOT_5_2_0=0",
                 "WITH_POSIX"
             ],
+            "windowsSdkVersion": "10.0.18362.0",
+            "compilerPath": "/usr/bin/gcc",
+            "cStandard": "c11",
+            "cppStandard": "c++11",
+            "intelliSenseMode": "gcc-x64",
             "forcedInclude": []
         }
     ],
