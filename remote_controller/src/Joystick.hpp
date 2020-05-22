@@ -3,6 +3,8 @@
 
 #include <array>
 
+#include "LoRaComm.hpp"
+
 namespace TankController
 {
 
@@ -13,6 +15,7 @@ public:
 	static const int AXIS_MAX = 128;
 	static const int AXIS_RANGE = AXIS_MAX - AXIS_MIN;
 	static const int AXIS_DEADZONE = 5;
+	static const int PING_TIME_MS = 50;
 
 	enum class Button : size_t
 	{
@@ -54,30 +57,11 @@ public:
 
 	void Update();
 
-	bool GetPressed(Button button_number) const;
-	bool GetReleased(Button button_number) const;
-	bool GetState(Button button_number) const;
-	bool GetPressed(Axis axis_number) const;
-	bool GetReleased(Axis axis_number) const;
-	bool GetState(Axis axis_number) const;
-	int GetValue(Axis axis_number) const;
-
 private:
-	enum class Event : size_t
-	{
-		BUTTON = 1,
-		AXIS = 2
-	};
 
-	std::array<bool, (size_t)Button::MAX> button_state;
-	std::array<bool, (size_t)Button::MAX> button_pressed;
-	std::array<bool, (size_t)Button::MAX> button_released;
+	int next_ping_time;
 
-	const std::array<int, (size_t)Axis::MAX> axis_default;
-
-	std::array<int, (size_t)Axis::MAX> axis;
-	std::array<bool, (size_t)Axis::MAX> axis_pressed;
-	std::array<bool, (size_t)Axis::MAX> axis_released;
+	LoRaComm comms;
 
 	bool CheckDevice();
 };

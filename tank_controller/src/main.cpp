@@ -1,36 +1,13 @@
-#include <esp_bt_main.h>
-#include <esp_wifi.h>
+#include <Arduino.h>
+
 #include <Esp.h>
 
-#include "PS4Lib/PS4Controller.h"
-#include "ramp/Ramp.h"
-#include "adc2read/adc2read.hpp"
 #include "Joystick.hpp"
 #include "MotorControl.hpp"
 #include "LaserDistanceMeter.hpp"
 #include "BatteryMeter.hpp"
 
-namespace TankController
-{
-
-void printDeviceAddress()
-{
-    uint64_t chipid = ESP.getEfuseMac();
-    const uint8_t *point = (uint8_t *)&chipid;
-
-    Serial.println("");
-
-    for (int i = 0; i < 6; i++)
-    {
-        Serial.printf("%02X", (int)point[i]);
-        if (i < 5)
-        {
-            Serial.print(":");
-        }
-    }
-
-    Serial.println("");
-}
+using namespace TankController;
 
 const int BATTERY_STATUS_LED = 2;
 
@@ -47,20 +24,14 @@ milliseconds next_control_update = 0;
 const milliseconds control_update_time = 5;
 
 milliseconds relay_disable_time = 0;
-const milliseconds relay_disable_timeout = 10000;
+const milliseconds relay_disable_timeout = 75;
 
 milliseconds next_battery_update = 0;
 const int max_battery_charge_failures = 4;
 const milliseconds battery_update_time = 125;
 int battery_charge_failures = max_battery_charge_failures;
 
-//rampInt ramp_speed_left;
-//rampInt ramp_speed_right;
-const milliseconds ramp_time = 1000;
-const int ramp_max_speed = 1000;
-const float ramp_delta = (float)ramp_time / (float)ramp_max_speed;
-
-int max_speed;
+int max_speed = 1000;
 
 void Reset()
 {
@@ -73,15 +44,7 @@ void Reset()
 
 void setup()
 {
-    esp32_adc2_setup();
-
     Serial.begin(115200);
-
-    btStart();
-
-    printDeviceAddress();
-
-    PS4.begin("70:20:84:6d:3d:4c");
 
     pinMode(BATTERY_STATUS_LED, OUTPUT);
 
@@ -254,21 +217,18 @@ void loop()
         }
     }
 
-    if (!PS4.isConnected() && controller_connected)
+    bool actual_connected_status = joystick.CheckDevice();
+    if (!actual_connected_status && controller_connected)
     {
         // exit routines here
         Reset();
         controller_connected = false;
         digitalWrite(BATTERY_STATUS_LED, LOW);
     }
-    else if (PS4.isConnected() && !controller_connected)
+    else if (actual_connected_status && !controller_connected)
     {
-        // init routines here
         controller_connected = true;
-        PS4.setLed(0, 200, 0);
-        // PS4.setFlashRate(100, 200); // 100ms on, 200ms off [0,2550], {0,0} => ON
-        // PS4.setRumble(100, 200); // weak, strong rumble [0,255]
-        PS4.sendToController();
+        Reset();
     }
 
     if (controller_connected && batteries_charged)
@@ -276,82 +236,4 @@ void loop()
         digitalWrite(BATTERY_STATUS_LED, HIGH);
         PerformMotorControls(now);
     }
-}
-
-} // namespace TankController
-
-#include "RadioHead/RH_RF95.h"
-#include "RadioHead/RHEncryptedDriver.h"
-#include "esp32blockciphers/ESP32AESBC.hpp"
-
-namespace LoRa
-{
-
-RH_RF95 rf95(5, 2);
-ESP32AESBC cipher;
-RHEncryptedDriver driver(rf95, cipher);
-float frequency = 868.0;
-unsigned char encryptkey[16] = {'6', 'x', '3', 'L', 'h', '5', '=', 'g', 'p', 'h', 'Q', '[', '{', 'B', 'K', 'V'};
-
-void setup()
-{
-    delay(1000);
-
-    Serial.begin(115200);
-
-    while (!rf95.init())
-    {
-        delay(10);
-    }
-
-    // Setup ISM frequency
-    rf95.setFrequency(frequency);
-    // Setup Power,dBm
-    rf95.setTxPower(13);
-    cipher.setKey(encryptkey, sizeof(encryptkey));
-}
-
-void client()
-{
-    static const char HWMessage[] = "Hello World ! I'm happy if you can read me";
-    static const uint8_t HWMessageLen = sizeof(HWMessage);
-
-    Serial.println("Loop");
-    driver.send((uint8_t*)HWMessage, sizeof(HWMessage)); // Send out ID + Sensor data to LoRa gateway
-    Serial.print("Sent: ");
-    Serial.println((char *)&HWMessage);
-    delay(1000);
-}
-
-void server()
-{
-    //Serial.println("Loop");
-    if (driver.available())
-    {
-        Serial.println("Avail");
-        uint8_t buf[driver.maxMessageLength()];
-        uint8_t len = sizeof(buf);
-        if (driver.recv(buf, &len))
-        {
-            Serial.print("Received: ");
-            Serial.println((char *)&buf);
-        }
-        else
-        {
-            Serial.println("recv failed");
-        }
-    }
-    delay(1000);
-}
-
-} // namespace LoRa
-
-void setup()
-{
-    LoRa::setup();
-}
-
-void loop()
-{
-    LoRa::client();
 }

@@ -1,0 +1,6 @@
+D27 Turret Pitch
+D26 Engine 1
+D25 Engine 2
+D32 Cannon
+D35 Cell 2
+D34 Cell 1

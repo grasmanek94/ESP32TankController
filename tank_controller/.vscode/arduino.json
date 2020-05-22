@@ -3,5 +3,5 @@
     "configuration": "FlashFreq=80,UploadSpeed=921600",
     "programmer": "AVRISP mkII",
     "sketch": "project.ino",
-    "port": "COM7"
+    "port": "COM4"
 }

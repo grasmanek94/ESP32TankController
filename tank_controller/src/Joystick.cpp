@@ -1,20 +1,52 @@
 #include <array>
+#include <bitset>
 
-#include "PS4Lib/PS4Controller.h"
-
+#include "LoRaComm.hpp"
 #include "Joystick.hpp"
 
 namespace TankController
 {
 
+struct LoRaData
+{
+	char start;
+	std::bitset<(size_t)Joystick::Button::MAX> buttons;
+	int axis[(size_t)Joystick::Axis::MAX];
+	char end;
+
+	LoRaData()
+	{
+		zero();
+	}
+
+	void zero()
+	{
+		memset(this, 0, sizeof(LoRaData));
+	}
+} __attribute__ ((aligned (1)));
+
+static_assert(sizeof(LoRaData) <= LoRaComm::MAX_MESSAGE_LEN, "");
+LoRaData data;
+
 Joystick::Joystick() : button_state{}, button_pressed{}, button_released{},
 					   axis_default{0, 0, AXIS_MIN, 0, 0, AXIS_MIN},
-					   axis{axis_default}, axis_pressed{}, axis_released{}
-{
-}
+					   axis{axis_default}, axis_pressed{}, axis_released{},
+					   next_ping_time{0}
+{}
 
 void Joystick::Update()
 {
+	if(!comms.initialized())
+	{
+		comms.setup();
+	}
+
+	bool update_available = comms.available();
+	if(update_available)
+	{
+		next_ping_time = millis() + PING_TIME_MS;
+	}
+
 	button_pressed = std::array<bool, (size_t)Button::MAX>{};
 	button_released = std::array<bool, (size_t)Button::MAX>{};
 
@@ -41,40 +73,28 @@ void Joystick::Update()
 		return;
 	}
 
-	temp_button_state[(size_t)Button::DPAD_UP] = PS4.data.button.up;
-	temp_button_state[(size_t)Button::DPAD_DOWN] = PS4.data.button.down;
-	temp_button_state[(size_t)Button::DPAD_LEFT] = PS4.data.button.left;
-	temp_button_state[(size_t)Button::DPAD_RIGHT] = PS4.data.button.right;
+	const uint8_t initial_size = sizeof(data);
+	uint8_t size = initial_size;
 
-	temp_button_state[(size_t)Button::DPAD_UP_LEFT] = PS4.data.button.upleft;
-	temp_button_state[(size_t)Button::DPAD_UP_RIGHT] = PS4.data.button.upright;
-	temp_button_state[(size_t)Button::DPAD_DOWN_LEFT] = PS4.data.button.downleft;
-	temp_button_state[(size_t)Button::DPAD_DOWN_RIGHT] = PS4.data.button.downright;
+	if(!update_available || !comms.recv(reinterpret_cast<uint8_t*>(&data), &size))
+	{
+		return;
+	}
 
-	temp_button_state[(size_t)Button::TRIANGLE] = PS4.data.button.triangle;
-	temp_button_state[(size_t)Button::CIRCLE] = PS4.data.button.circle;
-	temp_button_state[(size_t)Button::CROSS] = PS4.data.button.cross;
-	temp_button_state[(size_t)Button::SQUARE] = PS4.data.button.square;
+	if(size != initial_size || data.start != '{' || data.end != '}')
+	{
+		return;
+	}
 
-	temp_button_state[(size_t)Button::L1] = PS4.data.button.l1;
-	temp_button_state[(size_t)Button::R1] = PS4.data.button.r1;
+	for(size_t btn = 0; btn < (size_t)Button::MAX; ++btn)
+	{
+		temp_button_state[btn] = data.buttons[btn];
+	}
 
-	temp_button_state[(size_t)Button::L3] = PS4.data.button.l3;
-	temp_button_state[(size_t)Button::R3] = PS4.data.button.r3;
-
-	temp_button_state[(size_t)Button::SHARE] = PS4.data.button.share;
-	temp_button_state[(size_t)Button::OPTIONS] = PS4.data.button.options;
-
-	temp_button_state[(size_t)Button::HOME] = PS4.data.button.ps;
-
-	temp_button_state[(size_t)Button::TOUCHPAD] = PS4.data.button.touchpad;
-
-	temp_axis[(size_t)Axis::L2] = PS4.data.analog.button.l2;
-	temp_axis[(size_t)Axis::R2] = PS4.data.analog.button.r2;
-	temp_axis[(size_t)Axis::LEFT_X] = PS4.data.analog.stick.lx;
-	temp_axis[(size_t)Axis::LEFT_Y] = PS4.data.analog.stick.ly;
-	temp_axis[(size_t)Axis::RIGHT_X] = PS4.data.analog.stick.rx;
-	temp_axis[(size_t)Axis::RIGHT_Y] = PS4.data.analog.stick.ry;
+	for(size_t axis = 0; axis < (size_t)Button::MAX; ++axis)
+	{
+		temp_axis[axis] = data.axis[axis];
+	}	
 
 	for (size_t i = 0; i < (size_t)Button::MAX; ++i)
 	{
@@ -93,7 +113,7 @@ void Joystick::Update()
 
 bool Joystick::CheckDevice()
 {
-	return PS4.isConnected();
+	return next_ping_time > millis();
 }
 
 bool Joystick::GetPressed(Button button_number) const
