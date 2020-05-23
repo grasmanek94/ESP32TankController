@@ -2,6 +2,6 @@
     "board": "esp32:esp32:nodemcu-32s",
     "configuration": "FlashFreq=80,UploadSpeed=921600",
     "programmer": "AVRISP mkII",
-    "sketch": "project.ino",
-    "port": "COM4"
+    "sketch": "tank_controller.ino",
+    "port": "COM8"
 }
