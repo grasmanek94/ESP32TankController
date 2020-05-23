@@ -1,8 +1,9 @@
 #include <esp_bt_main.h>
-#include <esp_wifi.h>
+#include <esp_bt_device.h>
 #include <Esp.h>
 
 #include "PS4Lib/PS4Controller.h"
+
 #include "Joystick.hpp"
 #include "BatteryMeter.hpp"
 
@@ -24,7 +25,7 @@ int battery_charge_failures = max_battery_charge_failures;
 
 void Reset()
 {
-    //joystick.Update();
+    joystick.Update();
 }
 
 bool init_bluetooth()
@@ -52,28 +53,25 @@ bool init_bluetooth()
 
 void printDeviceAddress()
 {
-    uint64_t chipid = ESP.getEfuseMac();
-    const uint8_t *point = (uint8_t *)&chipid;
+  const uint8_t* point = esp_bt_dev_get_address();
 
-    Serial.println("");
+  Serial.println("");
 
-    for (int i = 0; i < 6; i++)
+  for (int i = 0; i < 6; i++)
+  {
+    Serial.printf("%02X", (int)point[i]);
+    if (i < 5)
     {
-        Serial.printf("%02X", (int)point[i]);
-        if (i < 5)
-        {
-            Serial.print(":");
-        }
+      Serial.print(":");
     }
+  }
 
-    Serial.println("");
+  Serial.println("");
 }
 
 void setup()
 {
     Serial.begin(115200);
-
-    delay(1000);
 
     while (!init_bluetooth()){}
 
@@ -140,6 +138,6 @@ void loop()
     }
     else
     {
-        digitalWrite(BATTERY_STATUS_LED, millis() / 1000 % 2);
+        digitalWrite(BATTERY_STATUS_LED, millis() / 250 % 2);
     }
 }
