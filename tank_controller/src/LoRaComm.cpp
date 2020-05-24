@@ -53,6 +53,11 @@ bool LoRaComm::initialized()
 	return is_initialized;
 }
 
+bool LoRaComm::waitPacketSent()
+{
+    return driver.waitPacketSent();
+}
+
 LoRaComm::LoRaComm()
 	: is_initialized{false}
 {}

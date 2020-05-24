@@ -19,8 +19,9 @@ public:
 	bool send(uint8_t* data, uint8_t len);
 	bool available();
 	bool recv(uint8_t* buffer, uint8_t* len);
-
-	static const size_t MAX_MESSAGE_LEN = ((int)(RH_RF95_MAX_MESSAGE_LEN / 16)) * 16;
+	bool waitPacketSent();
+	
+	static const size_t MAX_MESSAGE_LEN = 47;
 private:
 	bool is_initialized;
 };

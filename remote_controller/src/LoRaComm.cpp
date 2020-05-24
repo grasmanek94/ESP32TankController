@@ -10,7 +10,7 @@ namespace TankController
 {
 
 const int slaveSelect = 5;
-const int commInterrupt = 2;
+const int commInterrupt = 4;
 const float frequency = 868.0;
 const unsigned char encryptkey[16] = {'6', 'x', '3', 'L', 'h', '5', '=', 'g', 'p', 'h', 'Q', '[', '{', 'B', 'K', 'V'};
 
@@ -51,6 +51,11 @@ bool LoRaComm::recv(uint8_t* buffer, uint8_t* len)
 bool LoRaComm::initialized()
 {
 	return is_initialized;
+}
+
+bool LoRaComm::waitPacketSent()
+{
+    return driver.waitPacketSent();
 }
 
 LoRaComm::LoRaComm()

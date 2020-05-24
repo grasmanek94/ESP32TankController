@@ -1,5 +1,6 @@
 #include <array>
 #include <bitset>
+#include <vector>
 
 #include "LoRaComm.hpp"
 #include "Joystick.hpp"
@@ -10,9 +11,18 @@ namespace TankController
 struct LoRaData
 {
 	char start;
-	std::bitset<(size_t)Joystick::Button::MAX> buttons;
-	int axis[(size_t)Joystick::Axis::MAX];
+	char buttons[(size_t)Joystick::Button::MAX];
+	char axis[(size_t)Joystick::Axis::MAX];
 	char end;
+
+	static const size_t bits_in_byte = 8;
+	static const size_t button_bytes = (size_t)Joystick::Button::MAX / bits_in_byte + 1;
+	static const size_t axis_bytes = sizeof(axis);
+	static const size_t serialized_bytes =
+		sizeof(start) +
+		button_bytes +
+		axis_bytes +
+		sizeof(end);
 
 	LoRaData()
 	{
@@ -23,10 +33,76 @@ struct LoRaData
 	{
 		memset(this, 0, sizeof(LoRaData));
 	}
+
+	std::vector<uint8_t> serialize()
+	{
+		std::vector<uint8_t> vec;
+		std::bitset<bits_in_byte> bits;
+
+		vec.push_back(start);
+
+		for(int i = 0; i < button_bytes; ++i)
+		{
+			bits.reset();
+			for(int b = 0; b < bits_in_byte; ++b)
+			{
+				const size_t button_index = i * bits_in_byte + b;
+				if(button_index < sizeof(buttons))
+				{
+					bits[b] = buttons[button_index];
+				}
+			}
+			vec.push_back(bits.to_ulong() & 0xFF);
+		}
+
+		for(int i = 0; i < sizeof(axis); ++i)
+		{
+			vec.push_back(*(((uint8_t*)axis) + i));
+		}
+
+		vec.push_back(end);
+
+		return vec;
+	}
+
+	void deserialize(const uint8_t* data)
+	{
+		zero();
+		
+		std::bitset<bits_in_byte> bits;
+		size_t data_index = 0;
+
+		start = *(data + data_index);
+		++data_index;
+
+		for(int i = 0; i < button_bytes; ++i)
+		{
+			bits.reset();
+			for(int b = 0; b < bits_in_byte; ++b)
+			{
+				const size_t button_index = i * bits_in_byte + b;
+				if(button_index < sizeof(buttons))
+				{
+					buttons[button_index] = (*(data + data_index) & (1 << b)) > 0;
+				}
+			}
+			++data_index;
+		}
+
+		for(int i = 0; i < axis_bytes; ++i)
+		{
+			*(((uint8_t*)axis) + i) = *(data + data_index);
+			++data_index;
+		}
+
+		end = *(data + data_index);
+		++data_index;
+	}
+
 } __attribute__ ((aligned (1)));
 
-static_assert(sizeof(LoRaData) <= LoRaComm::MAX_MESSAGE_LEN, "");
 LoRaData data;
+uint8_t buffer[LoRaData::serialized_bytes];
 
 Joystick::Joystick() : button_state{}, button_pressed{}, button_released{},
 					   axis_default{0, 0, AXIS_MIN, 0, 0, AXIS_MIN},
@@ -73,15 +149,22 @@ void Joystick::Update()
 		return;
 	}
 
-	const uint8_t initial_size = sizeof(data);
+	const uint8_t initial_size = sizeof(buffer);
 	uint8_t size = initial_size;
 
-	if(!update_available || !comms.recv(reinterpret_cast<uint8_t*>(&data), &size))
+	if(!update_available || !comms.recv(buffer, &size))
 	{
 		return;
 	}
 
-	if(size != initial_size || data.start != '{' || data.end != '}')
+	if(size != initial_size)
+	{
+		return;
+	}
+
+	data.deserialize(buffer);
+
+	if(data.start != '{' || data.end != '}')
 	{
 		return;
 	}

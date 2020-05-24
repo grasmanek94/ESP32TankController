@@ -53,27 +53,29 @@ bool init_bluetooth()
 
 void printDeviceAddress()
 {
-  const uint8_t* point = esp_bt_dev_get_address();
+    const uint8_t *point = esp_bt_dev_get_address();
 
-  Serial.println("");
+    Serial.println("");
 
-  for (int i = 0; i < 6; i++)
-  {
-    Serial.printf("%02X", (int)point[i]);
-    if (i < 5)
+    for (int i = 0; i < 6; i++)
     {
-      Serial.print(":");
+        Serial.printf("%02X", (int)point[i]);
+        if (i < 5)
+        {
+            Serial.print(":");
+        }
     }
-  }
 
-  Serial.println("");
+    Serial.println("");
 }
 
 void setup()
 {
     Serial.begin(115200);
 
-    while (!init_bluetooth()){}
+    while (!init_bluetooth())
+    {
+    }
 
     PS4.begin("70:20:84:6D:3D:4C");
 
@@ -127,7 +129,10 @@ void loop()
     else if (PS4.isConnected() && !controller_connected)
     {
         controller_connected = true;
-        PS4.setLed(0, 200, 0);
+        PS4.setLed(0, 255, 0);
+        PS4.sendToController();
+        delay(50);
+        PS4.setLed(0, 255, 0);
         PS4.sendToController();
     }
 

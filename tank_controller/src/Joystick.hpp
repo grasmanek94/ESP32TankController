@@ -80,8 +80,6 @@ private:
 	int next_ping_time;
 
 	LoRaComm comms;
-
-
 };
 
 } // namespace TankController

@@ -49,8 +49,6 @@ void setup()
     pinMode(BATTERY_STATUS_LED, OUTPUT);
 
     Reset();
-
-    Serial.println("Done");
 }
 
 #define CLAMP(x, low, high) (((x) > (high)) ? (high) : (((x) < (low)) ? (low) : (x)))
@@ -72,8 +70,6 @@ void PerformMotorControls(unsigned long time_now)
     if (next_control_update < time_now)
     {
         next_control_update = time_now + control_update_time;
-
-        joystick.Update();
 
         int acceleration = joystick.GetValue(Joystick::Axis::R2) + Joystick::AXIS_MIN;
         int deceleration = joystick.GetValue(Joystick::Axis::L2) + Joystick::AXIS_MIN;
@@ -217,7 +213,9 @@ void loop()
         }
     }
 
+    joystick.Update();
     bool actual_connected_status = joystick.CheckDevice();
+
     if (!actual_connected_status && controller_connected)
     {
         // exit routines here
