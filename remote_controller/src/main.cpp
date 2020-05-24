@@ -88,6 +88,9 @@ void setup()
     Serial.println("Done");
 }
 
+int packets = 0;
+milliseconds start_time = 0;
+milliseconds next_stat_update = 0;
 void loop()
 {
     milliseconds now = millis();
@@ -134,15 +137,24 @@ void loop()
         delay(50);
         PS4.setLed(0, 255, 0);
         PS4.sendToController();
+        start_time = now;
     }
 
     if (controller_connected /*&& batteries_charged*/)
     {
         digitalWrite(BATTERY_STATUS_LED, HIGH);
         joystick.Update();
+        ++packets;
+        milliseconds diff = now - start_time;
+        if(now > next_stat_update)
+        {
+            next_stat_update = now + 500;
+            Serial.printf("%d packets / %d ms = %d ms/pkt | %d pkt/ms\r\n", packets, diff, diff / packets, packets / diff );
+        }
     }
     else
     {
         digitalWrite(BATTERY_STATUS_LED, millis() / 250 % 2);
     }
+    delay(10);
 }
