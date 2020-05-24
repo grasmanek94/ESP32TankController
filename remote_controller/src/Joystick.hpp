@@ -15,7 +15,7 @@ public:
 	static const int AXIS_MAX = 128;
 	static const int AXIS_RANGE = AXIS_MAX - AXIS_MIN;
 	static const int AXIS_DEADZONE = 5;
-	static const int PING_TIME_MS = 50;
+	static const int PING_TIME_MS = 150;
 
 	enum class Button : size_t
 	{

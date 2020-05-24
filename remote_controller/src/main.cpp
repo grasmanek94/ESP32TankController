@@ -146,7 +146,7 @@ void loop()
         joystick.Update();
         ++packets;
         milliseconds diff = now - start_time;
-        if(now > next_stat_update)
+        if(now > next_stat_update && packets != 0 && diff != 0)
         {
             next_stat_update = now + 500;
             Serial.printf("%d packets / %d ms = %d ms/pkt | %d pkt/ms\r\n", packets, diff, diff / packets, packets / diff );
