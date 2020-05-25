@@ -28,10 +28,10 @@ class Joystick
 {
 public:
 	static const int16_t BUTTON_MIN = 0;
-	static const int16_t BUTTON_MAX = 255;
+	static const int16_t BUTTON_MAX = 256;
 	static const int16_t BUTTON_RANGE = BUTTON_MAX - BUTTON_MIN;
 
-	static const int16_t AXIS_MIN = -127;
+	static const int16_t AXIS_MIN = -128;
 	static const int16_t AXIS_MAX = 128;
 	static const int16_t AXIS_RANGE = AXIS_MAX - AXIS_MIN;
 

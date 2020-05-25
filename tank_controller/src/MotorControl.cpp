@@ -70,15 +70,24 @@ bool MotorControl::RelayEnabled()
 	return relay_enabled;
 }
 
-int MotorControl::remap(int value, int start1, int stop1, int start2, int stop2)
+int MotorControl::remap(int value, int input_min, int input_max, int output_min, int output_max)
 {
-	float fvalue = value;
-	float fstart1 = start1;
-	float fstop1 = stop1;
-	float fstart2 = start2;
-	float fstop2 = stop2;
+	const long long factor = 1000000000;
 
-	return (int)(fstart2 + (fstop2 - fstart2) * ((fvalue - fstart1) / (fstop1 - fstart1)));
+	long long output_spread = output_max - output_min;
+	long long input_spread = input_max - input_min;
+
+	long long l_value = value;
+
+	long long zero_value = value - input_min;
+	zero_value *= factor;
+	long long percentage = zero_value / input_spread;
+
+	long long zero_output = percentage * output_spread / factor;
+
+	long long result = output_min + zero_output;
+
+	return (int)result;
 }
 
 void MotorControl::SetServo(function_info &info, int speed)

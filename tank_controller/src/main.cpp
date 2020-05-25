@@ -71,22 +71,22 @@ void PerformMotorControls(unsigned long time_now, bool event)
     {
         next_control_update = time_now + control_update_time;
 
-        int acceleration = joystick.axis.button.r2 + Joystick::BUTTON_MIN;
-        int deceleration = joystick.axis.button.l2 + Joystick::BUTTON_MIN;
+        int acceleration = joystick.ApplyDeadzone(joystick.axis.button.r2) + Joystick::BUTTON_MIN;
+        int deceleration = joystick.ApplyDeadzone(joystick.axis.button.l2) + Joystick::BUTTON_MIN;
 
         int speed = MotorControl::remap(acceleration - deceleration, -Joystick::BUTTON_RANGE, Joystick::BUTTON_RANGE, -max_speed, max_speed);
-        int steer = MotorControl::remap(joystick.axis.stick.lx, Joystick::AXIS_MIN, Joystick::AXIS_MAX, max_speed, -max_speed);
+        int steer = MotorControl::remap(joystick.ApplyDeadzone(joystick.axis.stick.lx), Joystick::AXIS_MIN, Joystick::AXIS_MAX, -max_speed, max_speed);
 
         int speedR = CLAMP(speed * SPEED_COEFFICIENT - steer * STEER_COEFFICIENT, -max_speed, max_speed);
         int speedL = CLAMP(speed * SPEED_COEFFICIENT + steer * STEER_COEFFICIENT, -max_speed, max_speed);
 
         if(event)
         {
-            Serial.printf("S%d/T%d\r\n", speed, steer);
+            Serial.printf("S %d / T %d | SL %d / SR %d | Tj %d \r\n", speed, steer, speedL, speedR, joystick.ApplyDeadzone(joystick.axis.stick.lx));
         }
 
-        int turret_yaw = MotorControl::remap(joystick.axis.stick.rx, Joystick::AXIS_MIN, Joystick::AXIS_MAX, 1000, -1000);
-        int turret_pitch = MotorControl::remap(joystick.axis.stick.ry, Joystick::AXIS_MIN, Joystick::AXIS_MAX, -1000, 1000);
+        int turret_yaw = MotorControl::remap(joystick.ApplyDeadzone(joystick.axis.stick.rx), Joystick::AXIS_MIN, Joystick::AXIS_MAX, 1000, -1000);
+        int turret_pitch = MotorControl::remap(joystick.ApplyDeadzone(joystick.axis.stick.ry), Joystick::AXIS_MIN, Joystick::AXIS_MAX, -1000, 1000);
 
         control.MoveTracks(speedL, speedR);
         control.MoveTurret(turret_yaw);
