@@ -11,7 +11,7 @@ namespace TankController
 class Joystick
 {
 public:
-	static const int PING_TIME_MS = 16;
+	static const int PING_TIME_MS = 50;
 
 	Joystick();
 

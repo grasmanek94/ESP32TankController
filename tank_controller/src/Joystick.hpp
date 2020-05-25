@@ -36,7 +36,7 @@ public:
 	static const int16_t AXIS_RANGE = AXIS_MAX - AXIS_MIN;
 
 	static const int16_t AXIS_DEADZONE = 20;
-	static const int PING_TIME_MS = 65;
+	static const int PING_TIME_MS = 150;
 
 	ps4_analog_t axis;
 	ps4_button_t button_state;
