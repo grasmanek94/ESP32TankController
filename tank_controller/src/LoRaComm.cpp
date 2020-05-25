@@ -27,7 +27,7 @@ void LoRaComm::setup()
 
     rf95.setFrequency(frequency);
     rf95.setTxPower(14);
-
+    rf95.setSignalBandwidth(500000);
     cipher.setKey(encryptkey, sizeof(encryptkey));
 
 	is_initialized = true;

@@ -16,7 +16,6 @@ MotorControl::MotorControl() : relay_cannon{32, Calibration{USMAX, USMAX, 0, USM
 							   relay_enabled{false}
 {
 	pinMode(relay_cannon.pin, OUTPUT);
-	gpio_set_drive_capability((gpio_num_t)relay_cannon.pin, GPIO_DRIVE_CAP_MAX);
 
 	AttachServo(motor_turn_turret);
 	AttachServo(motor_pitch_cannon);

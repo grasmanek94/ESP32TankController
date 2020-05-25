@@ -22,7 +22,11 @@ bool RHEncryptedDriver::recv(uint8_t *buf, uint8_t *len)
 	if (status && buf && len)
 	{
 		int blockSize = _blockcipher.blockSize(); // Size of blocks used by encryption
-		int nbBlocks = *len / blockSize;		  // Number of blocks in that message
+		if (blockSize == 0)
+		{
+			return status;
+		}
+		int nbBlocks = *len / blockSize; // Number of blocks in that message
 		if (nbBlocks * blockSize == *len)
 		{
 			// Or we have a missmatch ... this is probably not symetrically encrypted
@@ -56,7 +60,7 @@ bool RHEncryptedDriver::send(const uint8_t *data, uint8_t len)
 	bool status = true;
 	int blockSize = _blockcipher.blockSize(); // Size of blocks used by encryption
 
-	if (len == 0) // PassThru
+	if (len == 0 || blockSize == 0) // PassThru
 		return _driver.send(data, len);
 
 	if (_cipheringBlocks.blockSize != blockSize)
@@ -141,6 +145,11 @@ bool RHEncryptedDriver::send(const uint8_t *data, uint8_t len)
 uint8_t RHEncryptedDriver::maxMessageLength()
 {
 	int driver_len = _driver.maxMessageLength();
+
+	if(_blockcipher.blockSize() == 0)
+	{
+		return driver_len;
+	}
 
 #ifndef ALLOW_MULTIPLE_MSG
 	driver_len = ((int)(driver_len / _blockcipher.blockSize())) * _blockcipher.blockSize();

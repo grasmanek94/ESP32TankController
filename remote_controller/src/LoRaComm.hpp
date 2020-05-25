@@ -22,6 +22,7 @@ public:
 	bool waitPacketSent();
 	
 	static const size_t MAX_MESSAGE_LEN = 47;
+	static const size_t BLOCK_SIZE = 16;
 private:
 	bool is_initialized;
 };
