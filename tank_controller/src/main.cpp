@@ -31,11 +31,11 @@ const int max_battery_charge_failures = 4;
 const milliseconds battery_update_time = 125;
 int battery_charge_failures = max_battery_charge_failures;
 
-int max_speed = 1000;
+int max_speed = 220;
 
 void Reset()
 {
-    max_speed = 1000;
+    max_speed = 220;
 
     control.Reset();
     joystick.Update();
@@ -55,7 +55,7 @@ void setup()
 
 void AdjustSpeed(int amount)
 {
-    max_speed = CLAMP(max_speed + amount, 10, 1000);
+    max_speed = CLAMP(max_speed + amount, 10, 220);
     if (Serial)
     {
         Serial.printf("Speed: %d\r\n", max_speed);
@@ -80,11 +80,6 @@ void PerformMotorControls(unsigned long time_now, bool event)
         int speedR = CLAMP(speed * SPEED_COEFFICIENT - steer * STEER_COEFFICIENT, -max_speed, max_speed);
         int speedL = CLAMP(speed * SPEED_COEFFICIENT + steer * STEER_COEFFICIENT, -max_speed, max_speed);
 
-        if(event)
-        {
-            Serial.printf("S %d / T %d | SL %d / SR %d | Tj %d \r\n", speed, steer, speedL, speedR, joystick.ApplyDeadzone(joystick.axis.stick.lx));
-        }
-
         int turret_yaw = MotorControl::remap(joystick.ApplyDeadzone(joystick.axis.stick.rx), Joystick::AXIS_MIN, Joystick::AXIS_MAX, 1000, -1000);
         int turret_pitch = MotorControl::remap(joystick.ApplyDeadzone(joystick.axis.stick.ry), Joystick::AXIS_MIN, Joystick::AXIS_MAX, -1000, 1000);
 
@@ -108,7 +103,7 @@ void PerformMotorControls(unsigned long time_now, bool event)
     {
         if (!enabled && (
                     (joystick.button_pressed.l1 && joystick.button_state.r1) ||
-                    (joystick.button_pressed.r1  && joystick.button_state.l1)
+                    (joystick.button_pressed.r1 && joystick.button_state.l1)
             ))
         {
             relay_disable_time = time_now + relay_disable_timeout;
