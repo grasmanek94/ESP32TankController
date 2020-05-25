@@ -31,7 +31,7 @@ BatteryMeter::~BatteryMeter()
 
 bool BatteryMeter::CutOff()
 {
-	// Serial.printf("%.2f V / %2.f V\r\n", GetCellMillivolts(0) / 1000.0f, GetCellMillivolts(1) / 1000.0f);
+	Serial.printf("%.2f V / %.2f V\r\n", GetCellMillivolts(0) / 1000.0f, GetCellMillivolts(1) / 1000.0f);
 	return 
 		GetCellMillivolts(0) < cutoff || 
 		GetCellMillivolts(1) < cutoff;

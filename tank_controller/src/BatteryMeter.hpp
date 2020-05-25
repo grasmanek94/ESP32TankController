@@ -8,7 +8,7 @@ class BatteryMeter
 {
 	/*
                            +------/\/\/\/-----+-----/\/\/\/-----+
-                           |      R2=6070     |     R1=3750     |
+                           |      R2=6100     |     R1=3780     |
                            |                  |                 |
                            |                  +                 |
                            |                 A1                 |
@@ -17,7 +17,7 @@ class BatteryMeter
                            |                                    |
                3.3-4.2V    |                                    |
                            +------/\/\/\/-----+-----/\/\/\/-----+
-                           |      R4=2165     |     R3=7240     |
+                           |      R4=2316     |     R3=7720     |
                            |                  |                 |
                   +   +----+----+             +                 |
                                              A0                 |
@@ -25,8 +25,8 @@ class BatteryMeter
                            |                                    |
                3.3-4.2V    |                                    |
                            |                                    |
-                           +--------------/\/\/\/---------------+
-                           |              R5=10M                |
+                           +                                    +
+                           |                                    |
                            |                                    |
                            |   GND (BATT)                       |    GND (ESP32)
                         +-----+                              +-----+
@@ -38,13 +38,13 @@ public:
 	BatteryMeter(
 		int cell_pin_1 = 34, 
 		int cell_pin_2 = 35,
-		float r1_ohms = 3750,
-		float r2_ohms = 6070,
-		float r3_ohms = 7240,
-		float r4_ohms = 2165,
-		float ref_millivolts = 3300,
-		float cutoff_millivolts = 3300,
-		float resolution = 4096
+		float r1_ohms = 3720.0f,
+		float r2_ohms = 6100.0f,
+		float r3_ohms = 7500.0f,
+		float r4_ohms = 2316.0f,
+		float ref_millivolts = 3300.0f,
+		float cutoff_millivolts = 3300.0f,
+		float resolution = 4096.0f
 	);
 	virtual ~BatteryMeter();
 

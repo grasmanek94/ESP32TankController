@@ -186,9 +186,7 @@ void loop()
 {
     milliseconds now = millis();
 
-    bool batteries_charged = true;
-
-    /*bool batteries_charged = battery_charge_failures < max_battery_charge_failures;
+    bool batteries_charged = battery_charge_failures < max_battery_charge_failures;
 
     if (next_battery_update < now)
     {
@@ -224,7 +222,7 @@ void loop()
                 Serial.println("Charged");
             }
         }
-    }*/
+    }
 
     bool received_data = joystick.Update();
 
