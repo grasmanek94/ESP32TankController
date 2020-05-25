@@ -31,11 +31,11 @@ const int max_battery_charge_failures = 4;
 const milliseconds battery_update_time = 125;
 int battery_charge_failures = max_battery_charge_failures;
 
-int max_speed = 220;
+int max_speed = 330;
 
 void Reset()
 {
-    max_speed = 220;
+    max_speed = 330;
 
     control.Reset();
     joystick.Update();
@@ -55,7 +55,7 @@ void setup()
 
 void AdjustSpeed(int amount)
 {
-    max_speed = CLAMP(max_speed + amount, 10, 220);
+    max_speed = CLAMP(max_speed + amount, 10, 1000);
     if (Serial)
     {
         Serial.printf("Speed: %d\r\n", max_speed);
@@ -86,6 +86,7 @@ void PerformMotorControls(unsigned long time_now, bool event)
         control.MoveTracks(speedL, speedR);
         control.MoveTurret(turret_yaw);
         control.MovePitch(turret_pitch);
+        Serial.printf("%d\r\n", turret_pitch);
     }
     
     bool enabled = control.RelayEnabled();
