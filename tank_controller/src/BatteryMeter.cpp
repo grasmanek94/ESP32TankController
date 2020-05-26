@@ -20,8 +20,12 @@ BatteryMeter::BatteryMeter(
 	pinMode(pin_1, INPUT);
 	pinMode(pin_2, INPUT);
 
-	analogSetPinAttenuation(pin_1, ADC_11db);
-	analogSetPinAttenuation(pin_2, ADC_11db);
+	analogReadResolution(12);
+	analogSetWidth(12);
+	analogSetAttenuation(ADC_11db);
+	
+	adcAttachPin(pin_1);
+	adcAttachPin(pin_2);
 }
 
 BatteryMeter::~BatteryMeter()
@@ -31,7 +35,6 @@ BatteryMeter::~BatteryMeter()
 
 bool BatteryMeter::CutOff()
 {
-	Serial.printf("%.2f V / %.2f V\r\n", GetCellMillivolts(0) / 1000.0f, GetCellMillivolts(1) / 1000.0f);
 	return 
 		GetCellMillivolts(0) < cutoff || 
 		GetCellMillivolts(1) < cutoff;
@@ -51,11 +54,6 @@ float BatteryMeter::GetCellMillivolts(unsigned int cell)
 	float r_passive = (cell == 0) ? R4 : R2;
 
 	unsigned int buffer = analogRead((cell == 0) ? pin_1 : pin_2);
-
-	if(buffer >= 4095)
-	{
-		return 0.0f;
-	}
 
 	float diff = (cell == 0) ? 0.0f : GetCellMillivolts(0);
 
