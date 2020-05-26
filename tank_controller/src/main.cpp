@@ -64,9 +64,6 @@ void AdjustSpeed(int amount)
 
 void PerformMotorControls(unsigned long time_now, bool event)
 {
-    const float SPEED_COEFFICIENT = 1.0f;
-    const float STEER_COEFFICIENT = 1.0f;
-
     if (next_control_update < time_now)
     {
         next_control_update = time_now + control_update_time;
@@ -77,6 +74,19 @@ void PerformMotorControls(unsigned long time_now, bool event)
         int speed = MotorControl::remap(acceleration - deceleration, -Joystick::BUTTON_RANGE, Joystick::BUTTON_RANGE, -max_speed, max_speed);
         int steer = MotorControl::remap(joystick.ApplyDeadzone(joystick.axis.stick.lx), Joystick::AXIS_MIN, Joystick::AXIS_MAX, -max_speed, max_speed);
 
+        float SPEED_COEFFICIENT = 1.00f;
+        float STEER_COEFFICIENT = 0.50f;
+
+        int abs_speed = abs(speed);
+        if(abs_speed > 10)
+        {
+            STEER_COEFFICIENT = 0.50f - sqrt((float)abs_speed / 1000.0f);
+            if(STEER_COEFFICIENT < 0.25f)
+            {
+                STEER_COEFFICIENT = 0.25f;
+            }
+        }
+
         int speedR = CLAMP(speed * SPEED_COEFFICIENT - steer * STEER_COEFFICIENT, -max_speed, max_speed);
         int speedL = CLAMP(speed * SPEED_COEFFICIENT + steer * STEER_COEFFICIENT, -max_speed, max_speed);
 
@@ -86,7 +96,6 @@ void PerformMotorControls(unsigned long time_now, bool event)
         control.MoveTracks(speedL, speedR);
         control.MoveTurret(turret_yaw);
         control.MovePitch(turret_pitch);
-        Serial.printf("%d\r\n", turret_pitch);
     }
     
     bool enabled = control.RelayEnabled();
