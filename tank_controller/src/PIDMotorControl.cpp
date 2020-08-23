@@ -93,11 +93,6 @@ void PIDMotorControlTacho::Update()
 
 	calculated_ticks_ps = local_ticks / delta;
 
-	if(target_ticks_ps < 1.0 || direction == 0)
-	{
-		return;
-	}
-
 	bool update = pid.Compute();
 
 	double max_delta_speed = (double)max_speed_ps * delta;
@@ -108,11 +103,18 @@ void PIDMotorControlTacho::Update()
 		delta_speed = max_delta_speed;
 	}
 
-	target_speed += delta_speed * direction;
-
-	if(target_speed > max_speed_abs || target_speed < -max_speed_abs)
+	if(target_ticks_ps < 1.0 || direction == 0)
 	{
-		target_speed = max_speed_abs * direction;
+		target_speed = 0;
+	}
+	else
+	{
+		target_speed += delta_speed * direction;
+
+		if(abs(target_speed) > max_speed_abs)
+		{
+			target_speed = max_speed_abs * direction;
+		}
 	}
 
 	Serial.println((
