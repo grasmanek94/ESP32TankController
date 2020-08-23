@@ -14,17 +14,17 @@ public:
 	MotorControl();
 	virtual ~MotorControl();
 
-	void MoveTracks(int left_speed, int right_speed);
-	void MovePitch(int pitch_speed);
-	void MoveTurret(int turn_speed);
-	void RelayCannon(bool enabled);
-	bool RelayEnabled();
+	virtual void MoveTracks(int left_speed, int right_speed);
+	virtual void MovePitch(int pitch_speed);
+	virtual void MoveTurret(int turn_speed);
+	virtual void RelayCannon(bool enabled);
+	virtual bool RelayEnabled();
 
-	void Reset();
+	virtual void Reset();
 
 	static int remap(int value, int start1, int stop1, int start2, int stop2);
 
-private:
+protected:
 
 	const static int USMIN = 0;
 	const static int USMAX = 1000000;
@@ -55,8 +55,8 @@ private:
 		ESP32Servo servo;
 	};
 
-	void SetServo(function_info& info, int speed);
-	void AttachServo(function_info& info);
+	virtual void SetServo(function_info& info, int speed);
+	virtual void AttachServo(function_info& info);
 
 	function_info relay_cannon;
 	function_info motor_turn_turret;
