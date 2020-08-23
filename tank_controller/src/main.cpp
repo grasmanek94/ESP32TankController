@@ -4,6 +4,7 @@
 
 #include "Joystick.hpp"
 #include "MotorControl.hpp"
+#include "PIDMotorControl.hpp"
 #include "LaserDistanceMeter.hpp"
 #include "BatteryMeter.hpp"
 
@@ -78,10 +79,10 @@ void PerformMotorControls(unsigned long time_now, bool event)
         float STEER_COEFFICIENT = 0.50f;
 
         int abs_speed = abs(speed);
-        if(abs_speed > 10)
+        if (abs_speed > 10)
         {
             STEER_COEFFICIENT = 0.50f - sqrt((float)abs_speed / 1000.0f);
-            if(STEER_COEFFICIENT < 0.25f)
+            if (STEER_COEFFICIENT < 0.25f)
             {
                 STEER_COEFFICIENT = 0.25f;
             }
@@ -97,7 +98,7 @@ void PerformMotorControls(unsigned long time_now, bool event)
         control.MoveTurret(turret_yaw);
         control.MovePitch(turret_pitch);
     }
-    
+
     bool enabled = control.RelayEnabled();
 
     if (enabled && relay_disable_time < time_now)
@@ -109,12 +110,10 @@ void PerformMotorControls(unsigned long time_now, bool event)
         }
     }
 
-    if(event)
+    if (event)
     {
-        if (!enabled && (
-                    (joystick.button_pressed.l1 && joystick.button_state.r1) ||
-                    (joystick.button_pressed.r1 && joystick.button_state.l1)
-            ))
+        if (!enabled && ((joystick.button_pressed.l1 && joystick.button_state.r1) ||
+                         (joystick.button_pressed.r1 && joystick.button_state.l1)))
         {
             relay_disable_time = time_now + relay_disable_timeout;
             control.RelayCannon(true);
@@ -226,7 +225,7 @@ void loop()
         {
             battery_charge_failures = 0;
             digitalWrite(BATTERY_STATUS_LED, LOW);
-            if(!batteries_charged)
+            if (!batteries_charged)
             {
                 batteries_charged = true;
                 Serial.println("Charged");
@@ -260,4 +259,6 @@ void loop()
     {
         Reset();
     }
+
+    control.Update();
 }

@@ -3,5 +3,5 @@
     "configuration": "FlashFreq=80,UploadSpeed=921600",
     "programmer": "AVRISP mkII",
     "sketch": "tank_controller.ino",
-    "port": "COM4"
+    "port": "COM5"
 }

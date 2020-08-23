@@ -23,7 +23,8 @@ public:
 	virtual void Reset();
 
 	static int remap(int value, int start1, int stop1, int start2, int stop2);
-
+	virtual void Update();
+	
 protected:
 
 	const static int USMIN = 0;

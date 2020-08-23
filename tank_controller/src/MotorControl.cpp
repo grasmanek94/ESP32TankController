@@ -38,6 +38,11 @@ void MotorControl::Reset()
 	motor_move_r.servo.write(ESC_ARM);
 }
 
+void MotorControl::Update()
+{
+
+}
+
 MotorControl::~MotorControl()
 {
 	Reset();
