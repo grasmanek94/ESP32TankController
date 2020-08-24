@@ -11,8 +11,10 @@ namespace TankController
 MotorControl::MotorControl() : relay_cannon{32, Calibration{USMAX, USMAX, 0, USMAX, USMAX}, {}},	  // Cannon
 							   motor_turn_turret{33, Calibration{1386, 1435, 1480, 1528, 1577}, {}},  // Yaw Turret
 							   motor_pitch_cannon{27, Calibration{1372, 1420, 1470, 1518, 1567}, {}}, // Pitch Turret
+							   //motor_move_l{25, Calibration{800, 1450, 1500, 1550, 2100}, {}},		  // Left Engine
+							   //motor_move_r{26, Calibration{800, 1450, 1500, 1550, 2100}, {}},		  // Right Engine
 							   motor_move_l{25, Calibration{800, 1450, 1500, 1550, 2100}, {}},		  // Left Engine
-							   motor_move_r{26, Calibration{800, 1450, 1500, 1550, 2100}, {}},		  // Right Engine
+							   motor_move_r{26, Calibration{800, 1450, 1500, 1575, 2100}, {}},		  // Right Engine
 							   relay_enabled{false}
 {
 	pinMode(relay_cannon.pin, OUTPUT);

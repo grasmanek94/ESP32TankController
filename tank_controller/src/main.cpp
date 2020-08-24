@@ -12,7 +12,7 @@ using namespace TankController;
 
 const int BATTERY_STATUS_LED = 2;
 
-PIDMotorControl control;
+MotorControl control;
 Joystick joystick;
 LaserDistanceMeter distance_meter;
 BatteryMeter battery_meter;
