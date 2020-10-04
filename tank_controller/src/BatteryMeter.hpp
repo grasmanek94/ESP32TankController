@@ -15,7 +15,6 @@ public:
 private:
 	int pin_1;
    unsigned long last_zero_time;
-   static BatteryMeter* last_instance;
 };
 
 } // namespace TankController
