@@ -8,7 +8,6 @@ static BatteryMeter* last_instance;
 
 void BatteryMeter::ISR()
 {
-	Serial.println("ISR");
 	last_instance->last_zero_time = millis();
 }
 
@@ -29,7 +28,7 @@ BatteryMeter::~BatteryMeter()
 
 bool BatteryMeter::CutOff()
 {
-	return (digitalRead(pin_1) == 0) || ((millis() - last_zero_time) > 2000);
+	return (digitalRead(pin_1) == 0) || ((millis() - last_zero_time) < 2000);
 }
 
 } // namespace TruckController
