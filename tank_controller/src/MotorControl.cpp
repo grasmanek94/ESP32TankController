@@ -14,7 +14,7 @@ MotorControl::MotorControl() : relay_cannon{32, Calibration{USMAX, USMAX, 0, USM
 							   //motor_move_l{25, Calibration{800, 1450, 1500, 1550, 2100}, {}},		  // Left Engine
 							   //motor_move_r{26, Calibration{800, 1450, 1500, 1550, 2100}, {}},		  // Right Engine
 							   motor_move_l{25, Calibration{800, 1450, 1500, 1550, 2100}, {}},		  // Left Engine
-							   motor_move_r{26, Calibration{800, 1450, 1500, 1575, 2100}, {}},		  // Right Engine
+							   motor_move_r{26, Calibration{800, 1450, 1500, 1550, 2100}, {}},		  // Right Engine
 							   relay_enabled{false}
 {
 	pinMode(relay_cannon.pin, OUTPUT);

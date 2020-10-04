@@ -53,7 +53,7 @@ void PIDMotorControl::Update()
 }
 
 PIDMotorControlTacho::PIDMotorControlTacho():
-	pid(&calculated_ticks_ps, &output, &target_ticks_ps, 1.0, 1.0, 0.0, DIRECT)
+	pid(&calculated_ticks_ps, &output, &target_ticks_ps, 1.0, 0.0, 0.0, DIRECT)
 {
     update_delta = MAX_UPDATE_DELTA; // micros
 	ticks = 0;	
